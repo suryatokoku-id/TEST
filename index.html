@@ -154,9 +154,9 @@
     <!-- Header Section -->
     <header class="mb-6 text-center animate-slide-up" style="animation-delay: 0.1s; opacity: 0;">
       <h1 id="judulApp" class="text-2xl font-extrabold tracking-tight text-slate-800 mb-1">
-        STOCK <span class="text-blue-600">OPNAME</span>
+        SURYATOKOKU <span class="text-blue-600">STOCK OPNAME</span>
       </h1>
-      <p class="text-xs font-medium text-slate-500 uppercase tracking-widest">SURYATOKOKU</p>
+      <p class="text-xs font-medium text-slate-500 uppercase tracking-widest">Sistem Manajemen Gudang</p>
     </header>
 
     <!-- Master Sync Status Bar -->
@@ -164,120 +164,98 @@
       <div class="animate-pulse-soft text-amber-500">⏳ Menunggu load master...</div>
     </div>
 
-    <!-- MAIN INTERACTIVE HUB -->
-    <div class="space-y-4">
+    <!-- MAIN INTERACTIVE HUB (Combined inside Single Card Container) -->
+    <main class="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6 animate-slide-up relative z-20" style="animation-delay: 0.3s; opacity: 0;">
 
-      <!-- STEP 1 & 2: Operator Identity (High z-index to fix dropdown overlap) -->
-      <section class="bg-white p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-50 animate-slide-up" style="animation-delay: 0.3s; opacity: 0;">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">1</div>
-          <h2 class="text-sm font-bold text-slate-700">Identitas Petugas</h2>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Pilih Tim</label>
-            <div class="relative">
-              <select id="tim" autocomplete="off" onchange="updatePetugas()" class="clean-input w-full px-4 py-3.5 rounded-xl appearance-none font-medium text-[15px] cursor-pointer min-h-[52px]">
-                <option value="">Pilih Tim</option>
-                <option value="Surtok">Surtok</option>
-                <option value="Audit">Audit</option>
-              </select>
-              <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Pilih Petugas</label>
-            <select id="petugas" autocomplete="off" class="w-full">
-              <option value="">Pilih Petugas</option>
+      <!-- PART 1: Operator Identity -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Pilih Tim</label>
+          <div class="relative">
+            <select id="tim" autocomplete="off" onchange="updatePetugas()" class="clean-input w-full px-4 py-3.5 rounded-xl appearance-none font-medium text-[15px] cursor-pointer min-h-[52px]">
+              <option value="">Pilih Tim</option>
+              <option value="Surtok">Surtok</option>
+              <option value="Audit">Audit</option>
             </select>
-          </div>
-        </div>
-      </section>
-
-      <!-- STEP 3: Warehouse Location (Lower z-index) -->
-      <section class="bg-white p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-40 animate-slide-up" style="animation-delay: 0.4s; opacity: 0;">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">2</div>
-          <h2 class="text-sm font-bold text-slate-700">Lokasi Penyimpanan</h2>
-        </div>
-
-        <div class="rak-row flex gap-2.5 items-end">
-          <div class="flex-1">
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Kode Rak</label>
-            <input id="rak" placeholder="Contoh: 11A" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="formatRak(this)" class="clean-input w-full px-4 py-3.5 rounded-xl font-bold tracking-wider placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400 text-[15px] min-h-[52px] uppercase">
-          </div>
-          <button id="btnSelesai" type="button" onclick="selesaiRak()" class="h-[52px] px-4 bg-white border-2 border-rose-100 hover:border-rose-200 text-rose-600 font-bold text-sm rounded-xl active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm hover:bg-rose-50">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-            Selesai
-          </button>
-        </div>
-      </section>
-
-      <!-- STEP 4: Scanning Hub -->
-      <section class="bg-white p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-30 animate-slide-up" style="animation-delay: 0.5s; opacity: 0;">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">3</div>
-          <h2 class="text-sm font-bold text-slate-700">Pencarian SKU</h2>
-        </div>
-
-        <div class="space-y-4">
-          <!-- Live Camera Scanner Button -->
-          <button id="btnScan" type="button" onclick="bukaScanner()" class="w-full h-14 bg-slate-800 hover:bg-slate-700 text-white font-bold text-[15px] rounded-xl shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-            Scan Kamera
-          </button>
-
-          <!-- Interactive QR Camera view -->
-          <div id="reader" style="display:none;" class="w-full overflow-hidden border-2 border-dashed border-blue-200 rounded-2xl bg-slate-50 relative">
-            <div class="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-blue-500 z-10 rounded-tl-md"></div>
-            <div class="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-blue-500 z-10 rounded-tr-md"></div>
-            <div class="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-blue-500 z-10 rounded-bl-md"></div>
-            <div class="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-blue-500 z-10 rounded-br-md"></div>
-          </div>
-
-          <!-- Manual Barcode Input -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Input Manual / Barcode</label>
-            <input id="scanInput" placeholder="Ketik barcode atau SKU..." onkeydown="cekInput(event)" oninput="resetProduk()" onblur="cekBlur()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" disabled class="clean-input w-full px-4 py-3.5 rounded-xl font-medium placeholder:font-normal placeholder:text-slate-400 text-[15px] min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed">
-          </div>
-
-          <!-- Dynamic Product Info Display -->
-          <div id="produk" class="product-empty p-5 rounded-xl flex flex-col justify-center items-center text-center text-sm font-medium transition-all duration-300 min-h-[100px]">
-            Belum ada produk
-          </div>
-        </div>
-      </section>
-
-      <!-- STEP 5: Quantity & Submit -->
-      <section class="bg-white p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-20 animate-slide-up" style="animation-delay: 0.6s; opacity: 0;">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">4</div>
-          <h2 class="text-sm font-bold text-slate-700">Jumlah & Simpan</h2>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1 text-center">Jumlah Fisik (Qty)</label>
-            <div class="relative max-w-[200px] mx-auto">
-              <input id="qty" type="number" placeholder="0" min="1" inputmode="numeric" autocomplete="off" class="clean-input w-full text-slate-800 text-center font-extrabold text-3xl px-4 py-3 rounded-2xl h-16">
+            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
-
-          <button id="btnSimpan" type="button" onclick="simpan()" class="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[15px] rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-            SIMPAN DATA
-          </button>
         </div>
-      </section>
 
-    </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Pilih Petugas</label>
+          <select id="petugas" autocomplete="off" class="w-full">
+            <option value="">Pilih Petugas</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="border-slate-100">
+
+      <!-- PART 2: Warehouse Location -->
+      <div class="rak-row flex gap-2.5 items-end">
+        <div class="flex-1">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Kode Rak</label>
+          <input id="rak" placeholder="Contoh: A10" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="formatRak(this)" class="clean-input w-full px-4 py-3.5 rounded-xl font-bold tracking-wider placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400 text-[15px] min-h-[52px] uppercase">
+        </div>
+        <button id="btnSelesai" type="button" onclick="selesaiRak()" class="h-[52px] px-4 bg-white border-2 border-rose-100 hover:border-rose-200 text-rose-600 font-bold text-sm rounded-xl active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm hover:bg-rose-50">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+          Selesai
+        </button>
+      </div>
+
+      <hr class="border-slate-100">
+
+      <!-- PART 3: Searching & Scanning -->
+      <div class="space-y-4">
+        <!-- Live Camera Scanner Button -->
+        <button id="btnScan" type="button" onclick="bukaScanner()" class="w-full h-14 bg-slate-800 hover:bg-slate-700 text-white font-bold text-[15px] rounded-xl shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          Scan Kamera
+        </button>
+
+        <!-- Interactive QR Camera view -->
+        <div id="reader" style="display:none;" class="w-full overflow-hidden border-2 border-dashed border-blue-200 rounded-2xl bg-slate-50 relative">
+          <div class="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-blue-500 z-10 rounded-tl-md"></div>
+          <div class="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-blue-500 z-10 rounded-tr-md"></div>
+          <div class="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-blue-500 z-10 rounded-bl-md"></div>
+          <div class="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-blue-500 z-10 rounded-br-md"></div>
+        </div>
+
+        <!-- Manual Barcode Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Input Manual / Barcode</label>
+          <input id="scanInput" placeholder="Ketik barcode atau SKU..." onkeydown="cekInput(event)" oninput="resetProduk()" onblur="cekBlur()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" disabled class="clean-input w-full px-4 py-3.5 rounded-xl font-medium placeholder:font-normal placeholder:text-slate-400 text-[15px] min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed">
+        </div>
+
+        <!-- Dynamic Product Info Display -->
+        <div id="produk" class="product-empty p-5 rounded-xl flex flex-col justify-center items-center text-center text-sm font-medium transition-all duration-300 min-h-[100px]">
+          Belum ada produk
+        </div>
+      </div>
+
+      <hr class="border-slate-100">
+
+      <!-- PART 4: Quantity & Submit -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1 text-center">Jumlah Fisik (Qty)</label>
+          <div class="relative max-w-[200px] mx-auto">
+            <input id="qty" type="number" placeholder="0" min="1" inputmode="numeric" autocomplete="off" class="clean-input w-full text-slate-800 text-center font-extrabold text-3xl px-4 py-3 rounded-2xl h-16">
+          </div>
+        </div>
+
+        <button id="btnSimpan" type="button" onclick="simpan()" class="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[15px] rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+          SIMPAN DATA
+        </button>
+      </div>
+
+    </main>
   </div>
 
   <!-- CLEAN POPUP MODAL -->
