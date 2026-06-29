@@ -154,14 +154,23 @@
     <!-- Header Section -->
     <header class="mb-6 text-center animate-slide-up" style="animation-delay: 0.1s; opacity: 0;">
       <h1 id="judulApp" class="text-2xl font-extrabold tracking-tight text-slate-800 mb-1">
-        SURYATOKOKU <span class="text-blue-600">STOCK OPNAME</span>
+        STOCK <span class="text-blue-600">OPNAME</span>
       </h1>
-      <p class="text-xs font-medium text-slate-500 uppercase tracking-widest">Sistem Manajemen Gudang</p>
+      <p class="text-xs font-medium text-slate-500 uppercase tracking-widest">SURYATOKOKU</p>
     </header>
 
-    <!-- Master Sync Status Bar -->
-    <div id="masterStatus" class="mb-6 p-3 rounded-2xl bg-white border border-slate-200 text-center text-sm font-semibold text-slate-600 shadow-sm flex flex-col justify-center items-center animate-slide-up" style="animation-delay: 0.2s; opacity: 0;">
-      <div class="animate-pulse-soft text-amber-500">⏳ Menunggu load master...</div>
+    <!-- Master Sync Status Bar & Manual Sync Button Container -->
+    <div class="flex gap-2.5 items-stretch mb-6 animate-slide-up" style="animation-delay: 0.2s; opacity: 0;">
+      <!-- Status Box -->
+      <div id="masterStatus" class="flex-1 p-3.5 rounded-2xl bg-white border border-slate-200 text-center text-sm font-semibold text-slate-600 shadow-sm flex flex-col justify-center items-center transition-all duration-300">
+        <div class="animate-pulse-soft text-amber-500">⏳ Menunggu load master...</div>
+      </div>
+      <!-- Sync Icon Button -->
+      <button id="btnSync" type="button" onclick="manualSync()" class="w-[52px] rounded-2xl bg-white border border-slate-200 hover:border-blue-200 text-slate-500 hover:text-blue-600 active:scale-95 transition-all duration-200 flex items-center justify-center shadow-sm" title="Sinkronisasi Data Terkini dari Sheet">
+        <svg class="w-5 h-5 transition-transform duration-300" id="syncIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+        </svg>
+      </button>
     </div>
 
     <!-- MAIN INTERACTIVE HUB (Combined inside Single Card Container) -->
@@ -201,7 +210,7 @@
         </div>
         <button id="btnSelesai" type="button" onclick="selesaiRak()" class="h-[52px] px-4 bg-white border-2 border-rose-100 hover:border-rose-200 text-rose-600 font-bold text-sm rounded-xl active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm hover:bg-rose-50">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-          Selesai
+          Selesaikan Rak
         </button>
       </div>
 
@@ -271,7 +280,7 @@
     </div>
   </div>
 
-  <!-- MAIN APP CONTROLLER & LOGIC (NO LOGIC CHANGES) -->
+  <!-- MAIN APP CONTROLLER & LOGIC -->
   <script>
     const API = "https://script.google.com/macros/s/AKfycbxpDBK-_y2heN6b8EkXyiwg9cqkXB-hWYU-KXwDjQmlaI2W7cB-v0baDYjADQpkxrc5/exec";
 
@@ -283,7 +292,61 @@
     let MASTER_MAP = {};
     let petugasSelect = null;
 
-    window.onload = async () => { await loadMaster(); };
+    // Memori Penyimpanan Sementara (Cache) Nama Petugas agar Load Instan
+    let PETUGAS_CACHE = {
+      "Surtok": [],
+      "Audit": []
+    };
+
+    window.onload = async () => { 
+      // Ambil daftar nama petugas secara paralel di latar belakang (background) agar menghemat waktu
+      preFetchPetugas(); 
+      await loadMaster(); 
+    };
+
+    // Fungsi mengambil daftar nama petugas di awal
+    async function preFetchPetugas() {
+      try {
+        const [resSurtok, resAudit] = await Promise.all([
+          fetch(API + "?action=petugas&tim=Surtok"),
+          fetch(API + "?action=petugas&tim=Audit")
+        ]);
+        const dataSurtok = await resSurtok.json();
+        const dataAudit = await resAudit.json();
+        
+        PETUGAS_CACHE["Surtok"] = dataSurtok.data || [];
+        PETUGAS_CACHE["Audit"] = dataAudit.data || [];
+      } catch (err) {
+        console.log("Gagal melakukan pre-fetch petugas di background, akan ditarik manual saat tim dipilih.", err);
+      }
+    }
+
+    // Fungsi untuk memicu sinkronisasi ulang secara manual dari tombol UI
+    async function manualSync() {
+      const btnSync = document.getElementById("btnSync");
+      const syncIcon = document.getElementById("syncIcon");
+
+      if (btnSync.disabled) return;
+
+      // Kunci tombol & tambahkan animasi putar
+      btnSync.disabled = true;
+      btnSync.classList.add("opacity-50");
+      syncIcon.classList.add("animate-spin");
+
+      // Jalankan sinkronisasi ulang master produk dan daftar petugas
+      await Promise.all([
+        loadMaster(),
+        preFetchPetugas()
+      ]);
+
+      // Lepaskan kunci tombol & matikan animasi putar
+      btnSync.disabled = false;
+      btnSync.classList.remove("opacity-50");
+      syncIcon.classList.remove("animate-spin");
+
+      // Mainkan suara sukses sebagai penanda rampung
+      bunyiSukses();
+    }
 
     async function updatePetugas() {
       const tim = document.getElementById("tim").value;
@@ -294,28 +357,49 @@
         petugasSelect = null;
       }
 
+      if (!tim) {
+        petugas.innerHTML = '<option value="">Pilih Petugas</option>';
+        petugasSelect = new TomSelect("#petugas", { create: false, sortField: "text" });
+        return;
+      }
+
+      // OPTIMASI: Jika nama petugas sudah ada di cache, langsung tampilkan secara instan
+      if (PETUGAS_CACHE[tim] && PETUGAS_CACHE[tim].length > 0) {
+        renderPetugasOptions(PETUGAS_CACHE[tim]);
+        return;
+      }
+
+      // Fallback jika pre-fetch gagal atau belum selesai ditarik di awal
       petugas.innerHTML = '<option value="">Memuat...</option>';
 
       try {
         const res = await fetch(API + "?action=petugas&tim=" + encodeURIComponent(tim));
         const data = await res.json();
-
-        petugas.innerHTML = '<option value="">Pilih Petugas</option>';
-
-        (data.data || []).forEach(nama => {
-          petugas.innerHTML += `<option value="${nama}">${nama}</option>`;
-        });
-
-        petugas.value = "";
-
-        // Re-initialize TomSelect
-        petugasSelect = new TomSelect("#petugas", {
-          create: false,
-          sortField: "text"
-        });
+        const list = data.data || [];
+        
+        PETUGAS_CACHE[tim] = list; // Simpan ke cache
+        renderPetugasOptions(list);
       } catch (err) {
         console.log(err);
+        petugas.innerHTML = '<option value="">Gagal memuat</option>';
       }
+    }
+
+    // Fungsi render nama petugas ke select element & inisialisasi TomSelect
+    function renderPetugasOptions(list) {
+      const petugas = document.getElementById("petugas");
+      petugas.innerHTML = '<option value="">Pilih Petugas</option>';
+
+      list.forEach(nama => {
+        petugas.innerHTML += `<option value="${nama}">${nama}</option>`;
+      });
+
+      petugas.value = "";
+
+      petugasSelect = new TomSelect("#petugas", {
+        create: false,
+        sortField: "text"
+      });
     }
 
     async function loadMaster() {
@@ -327,7 +411,7 @@
       scanInput.disabled = true;
 
       try {
-        statusDiv.className = "mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center text-sm flex flex-col justify-center items-center animate-slide-up";
+        statusDiv.className = "flex-1 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-center text-sm flex flex-col justify-center items-center transition-all duration-300";
         statusDiv.innerHTML = `
           <div class="flex items-center gap-2 text-amber-600 font-bold">
             <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2"></path></svg>
@@ -355,7 +439,7 @@
         scanBtn.disabled = false;
         scanInput.disabled = false;
         
-        statusDiv.className = "mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center text-sm flex flex-col justify-center items-center animate-slide-up";
+        statusDiv.className = "flex-1 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center text-sm flex flex-col justify-center items-center transition-all duration-300";
         statusDiv.innerHTML = `
           <div class="flex items-center gap-1.5 text-emerald-600 font-bold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
@@ -366,7 +450,7 @@
 
       } catch (err) {
         console.log(err);
-        statusDiv.className = "mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-center text-sm flex flex-col justify-center items-center animate-slide-up";
+        statusDiv.className = "flex-1 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-center text-sm flex flex-col justify-center items-center transition-all duration-300";
         statusDiv.innerHTML = `
           <div class="flex items-center gap-1.5 text-red-600 font-bold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -424,6 +508,7 @@
       reader.style.display = "none";
     }
 
+    // Play standard beep audio
     function bunyiBeep() {
       new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
     }
@@ -437,6 +522,12 @@
           cariProduk(input);
         }, 100);
       }
+    }
+
+    // Play error sound
+    function bunyiError() {
+      audioError.currentTime = 0;
+      audioError.play();
     }
 
     function cekBlur() {
@@ -559,7 +650,6 @@
       const content = document.getElementById("popup-content");
       
       popup.style.display = "flex";
-      // Small timeout to allow display:flex to apply before animating opacity
       setTimeout(() => {
         popup.classList.remove("opacity-0", "hidden");
         content.classList.remove("scale-95");
@@ -578,7 +668,7 @@
       setTimeout(() => {
         popup.style.display = "none";
         popup.classList.add("hidden");
-      }, 300); // match duration
+      }, 300);
     }
 
     async function selesaiRak() {
@@ -620,11 +710,7 @@
       audioSukses.play();
     }
 
-    function bunyiError() {
-      audioError.currentTime = 0;
-      audioError.play();
-    }
-
+    // Hanya membatasi karakter alfabet & angka uppercase
     function formatRak(input) {
       input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     }
