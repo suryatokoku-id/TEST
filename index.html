@@ -611,19 +611,42 @@
                 const devices = await Html5Qrcode.getCameras();
                 if (!devices || devices.length === 0) return null;
 
-                let bestCamera = null;
+                // JIKA LABEL KAMERA KOSONG (karena pembatasan privasi browser atau izin awal):
+                // Langsung kembalikan null agar sistem otomatis memakai browser-default { facingMode: "environment" } (Kamera Belakang)
+                const hasLabels = devices.some(d => d.label && d.label.trim() !== "");
+                if (!hasLabels) {
+                    return null;
+                }
+
+                // Langkah 1: Saring hanya kamera belakang yang valid (menghapus kamera depan)
+                const rearCameras = [];
+                for (const device of devices) {
+                    const label = (device.label || "").toLowerCase();
+                    
+                    // Lewati kamera depan secara ketat
+                    if (label.includes("front") || label.includes("selfie") || label.includes("user") || label.includes("forward") || label.includes("secondary")) {
+                        continue;
+                    }
+                    rearCameras.push(device);
+                }
+
+                if (rearCameras.length === 0) {
+                    return null;
+                }
+
+                if (rearCameras.length === 1) {
+                    return rearCameras[0].id;
+                }
+
+                // Langkah 2: Berikan penilaian jika ada beberapa kamera belakang
+                let bestCamera = rearCameras[0];
                 let highestScore = -100;
 
-                for (const device of devices) {
+                for (const device of rearCameras) {
                     const label = (device.label || "").toLowerCase();
                     let score = 0;
 
-                    // Lewati langsung kamera depan
-                    if (label.includes("front") || label.includes("selfie") || label.includes("user") || label.includes("secondary")) {
-                        continue;
-                    }
-
-                    // Deteksi kamera belakang
+                    // Deteksi kamera belakang standar
                     if (label.includes("back") || label.includes("rear") || label.includes("environment") || label.includes("camera 0") || label.includes("camera 1")) {
                         score += 50;
                     }
@@ -634,12 +657,12 @@
                     }
 
                     // Hindari lensa Ultra-Wide karena distorsi pinggiran membuat barcode sulit didekode
-                    if (label.includes("ultra") || label.includes("wide") && label.includes("ultra")) {
-                        score -= 40;
+                    if (label.includes("ultra") || (label.includes("wide") && label.includes("ultra")) || label.includes("0.5x") || label.includes("0.6x")) {
+                        score -= 60;
                     }
 
                     // Hindari juga lensa macro / telephoto super zoom yang sensitif getaran
-                    if (label.includes("tele") || label.includes("zoom") || label.includes("macro") || label.includes("depth")) {
+                    if (label.includes("tele") || label.includes("zoom") || label.includes("macro") || label.includes("depth") || label.includes("virtual")) {
                         score -= 20;
                     }
 
