@@ -40,12 +40,15 @@
         /* Reset style bawaan html5-qrcode */
         #reader {
             border: none !important;
+            background: #000 !important;
         }
+        /* PENTING: Menggunakan 'contain' agar tidak ada gambar kamera yang terpotong di iPhone */
         #reader video {
             border-radius: 1.25rem !important;
-            object-fit: cover !important;
+            object-fit: contain !important;
             width: 100% !important;
             height: auto !important;
+            max-height: 350px !important;
         }
     </style>
     <script>
@@ -189,9 +192,16 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                     Kamera Aktif
                 </span>
-                <button onclick="stopScanner()" class="text-xs bg-white/10 hover:bg-red-500 text-slate-200 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
-                    Tutup
-                </button>
+                
+                <div class="flex items-center gap-2">
+                    <!-- PENTING: Tombol Ganti Kamera untuk Mengatasi Lensa 0.5x Buram di iPhone -->
+                    <button id="switch-camera-btn" onclick="switchCamera()" class="hidden text-xs bg-white/10 hover:bg-white/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl font-bold transition-all">
+                        Putar Kamera 🔄
+                    </button>
+                    <button onclick="stopScanner()" class="text-xs bg-white/10 hover:bg-red-500 text-slate-200 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
+                        Tutup
+                    </button>
+                </div>
             </div>
             
             <!-- Beautiful Frame Container -->
@@ -252,6 +262,10 @@
         let currentProducts = [];
         let allProducts = [];
         let qr = null;
+        
+        // State Manajemen Kamera untuk iPhone/Multi-kamera
+        let availableCameras = [];
+        let activeCameraIndex = 0;
 
         // INDEXEDDB CONFIGURATION FOR INSTANT LOADING
         const DB_NAME = "SuryatokokuLocalDB";
@@ -628,8 +642,8 @@
             };
         }
 
-        // --- PENGATURAN KAMERA OPTIMAL UNTUK IPHONE & BARCODE 1D ---
-        function startScanner() {
+        // --- SISTEM PEMINDAIAN KAMERA MUTAKHIR UNTUK IPHONE ---
+        async function startScanner() {
             if (qr) {
                 stopScanner();
                 return;
@@ -637,12 +651,13 @@
 
             const wrapper = document.getElementById("scanner-wrapper");
             const overlay = document.getElementById("scanner-overlay");
+            const switchBtn = document.getElementById("switch-camera-btn");
             
             wrapper.classList.remove("hidden");
             if (overlay) overlay.classList.remove("hidden");
             document.getElementById("reader").innerHTML = "";
 
-            // MEMBATASI FORMAT SCANNER AGAR FOKUS HANYA PADA BARCODE PRODUK & QR
+            // MEMBATASI FORMAT SCANNER AGAR SANGAT SENSITIF TERHADAP BARCODE BARANG RETAIL
             let formats = [];
             if (typeof Html5QrcodeSupportedFormats !== "undefined") {
                 formats = [
@@ -656,28 +671,77 @@
                 ];
             }
 
-            qr = new Html5Qrcode("reader", { formatsToSupport: formats });
-            
-            // Konfigurasi performa tinggi yang disukai Safari iOS
-            qr.start(
-                { facingMode: "environment" }, // Kamera belakang utama
-                { 
-                    fps: 20, // 20 fps memberikan keseimbangan optimal antara kestabilan dan ketajaman tangkapan
-                    qrbox: (width, height) => {
-                        // Barcode 1D (produk) melebar secara horizontal.
-                        // Kotak scan disesuaikan melebar (85% lebar dan 40% tinggi video)
-                        // agar seluruh garis barcode masuk sempurna ke zona dekode.
-                        const boxWidth = Math.floor(width * 0.85);
-                        const boxHeight = Math.floor(height * 0.40);
-                        return { width: boxWidth, height: boxHeight };
-                    },
-                    videoConstraints: {
-                        facingMode: "environment",
-                        // Meminta resolusi HD ideal agar garis barcode 1D terdefinisi tajam di sensor iPhone
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+            // Inisialisasi engine scanner dengan menyalakan native Barcode Detector milik iOS Safari (jika didukung)
+            qr = new Html5Qrcode("reader", { 
+                formatsToSupport: formats,
+                verbose: false,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true // Fitur akselerasi scanning perangkat keras di iOS Safari
+                }
+            });
+
+            try {
+                // DETEKSI DAFTAR KAMERA PERANGKAT SECARA NYATA
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length > 0) {
+                    // Filter kamera belakang saja
+                    availableCameras = devices.filter(cam => {
+                        const label = cam.label.toLowerCase();
+                        // Hindari kamera depan & prioritaskan kamera belakang (back/rear)
+                        return !label.includes("front") && !label.includes("selfie");
+                    });
+
+                    // Jika tidak ada kamera yang ter-filter spesifik belakang, pakai semua perangkat kamera
+                    if (availableCameras.length === 0) {
+                        availableCameras = devices;
                     }
+
+                    // Urutkan kamera agar kamera utama (biasanya berindeks pertama/terakhir) dicoba lebih dulu
+                    // Kita akan membalik urutannya karena pada iPhone lensa utama biasanya berada di indeks terakhir list WebRTC
+                    availableCameras.reverse();
+
+                    if (availableCameras.length > 1) {
+                        switchBtn.classList.remove("hidden"); // Tampilkan tombol ganti kamera jika lebih dari 1 kamera belakang terdeteksi
+                    } else {
+                        switchBtn.classList.add("hidden");
+                    }
+
+                    activeCameraIndex = 0;
+                    await runScannerOnDevice(availableCameras[activeCameraIndex].id);
+                } else {
+                    // Fallback jika daftar kamera tidak bisa didapatkan
+                    await runScannerOnDevice({ facingMode: "environment" });
+                }
+            } catch (err) {
+                console.error("Gagal mendeteksi kamera:", err);
+                // Fallback langsung menggunakan facingMode standard
+                try {
+                    await runScannerOnDevice({ facingMode: "environment" });
+                } catch (fallbackErr) {
+                    showToast("Kamera Gagal", "Pastikan situs diakses via HTTPS dan izin kamera aktif.", "error");
+                    stopScanner();
+                }
+            }
+        }
+
+        // Fungsi internal untuk menyalakan kamera menggunakan ID perangkat spesifik
+        async function runScannerOnDevice(cameraIdentifier) {
+            if (!qr) return;
+
+            const config = {
+                fps: 25, // 25 FPS membuat pergerakan video mulus dan memudahkan ZXing menangkap gambar fokus
+                qrbox: (width, height) => {
+                    // Kotak horizontal panjang yang sesuai dengan struktur Barcode Produk EAN-13
+                    const boxWidth = Math.floor(width * 0.85);
+                    const boxHeight = Math.floor(height * 0.35);
+                    return { width: boxWidth, height: boxHeight };
                 },
+                aspectRatio: 1.777778 // Rasio aspek HD 16:9 yang didukung sempurna oleh semua lensa iPhone
+            };
+
+            await qr.start(
+                cameraIdentifier,
+                config,
                 (decoded) => {
                     keywordInput.value = decoded;
                     clearBtn.classList.remove("hidden");
@@ -691,18 +755,37 @@
                     showToast("Sukses", "Barcode berhasil dipindai!", "success");
                 },
                 (error) => {
-                    // Dibiarkan kosong tanpa log agar performa CPU di iPhone tetap ringan saat mencari fokus
+                    // Mengabaikan log deteksi kosong agar performa memori iOS tetap lega
                 }
-            ).catch(err => {
-                console.error("Gagal mengakses kamera:", err);
-                showToast("Kamera Gagal", "Pastikan memberikan izin kamera & buka situs via HTTPS.", "error");
-                stopScanner();
-            });
+            );
+        }
+
+        // Fitur Pemutar Kamera jika gambar buram (Mengalihkan dari lensa 0.5x Ultra-Wide ke lensa Utama 1x)
+        async function switchCamera() {
+            if (!qr || availableCameras.length <= 1) return;
+
+            showToast("Beralih", "Mencoba lensa kamera alternatif...", "info");
+            
+            activeCameraIndex = (activeCameraIndex + 1) % availableCameras.length;
+            const targetCameraId = availableCameras[activeCameraIndex].id;
+
+            try {
+                // Matikan scanner yang sedang berjalan terlebih dahulu
+                await qr.stop();
+                document.getElementById("reader").innerHTML = "";
+                
+                // Nyalakan kembali di perangkat kamera yang baru
+                await runScannerOnDevice(targetCameraId);
+            } catch (err) {
+                console.error("Gagal beralih kamera:", err);
+                showToast("Gagal Beralih", "Lensa kamera tersebut tidak merespon.", "error");
+            }
         }
 
         function stopScanner() {
             const overlay = document.getElementById("scanner-overlay");
             if (overlay) overlay.classList.add("hidden");
+            document.getElementById("switch-camera-btn").classList.add("hidden");
 
             if (qr) {
                 qr.stop().then(() => {
