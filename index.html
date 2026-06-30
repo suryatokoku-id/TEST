@@ -611,59 +611,54 @@
                 const devices = await Html5Qrcode.getCameras();
                 if (!devices || devices.length === 0) return null;
 
-                // JIKA LABEL KAMERA KOSONG (karena pembatasan privasi browser atau izin awal):
-                // Langsung kembalikan null agar sistem otomatis memakai browser-default { facingMode: "environment" } (Kamera Belakang)
+                // JIKA LABEL KAMERA KOSONG (browser menyembunyikan karena privasi):
                 const hasLabels = devices.some(d => d.label && d.label.trim() !== "");
-                if (!hasLabels) {
-                    return null;
-                }
+                if (!hasLabels) return null;
 
-                // Langkah 1: Saring hanya kamera belakang yang valid (menghapus kamera depan)
-                const rearCameras = [];
+                let backCameras = [];
+
                 for (const device of devices) {
                     const label = (device.label || "").toLowerCase();
                     
-                    // Lewati kamera depan secara ketat
-                    if (label.includes("front") || label.includes("selfie") || label.includes("user") || label.includes("forward") || label.includes("secondary")) {
+                    // 1. FILTER MUTLAK: Buang semua yang terindikasi kamera depan
+                    if (label.includes("front") || label.includes("selfie") || label.includes("user") || label.includes("depan")) {
                         continue;
                     }
-                    rearCameras.push(device);
+
+                    // 2. TANGKAP PASTI: Hanya ambil yang TERBUKTI kamera belakang/utama
+                    // (Mencegah tebakan tebakan "camera 0" yang sering bocor jadi kamera depan)
+                    if (label.includes("back") || label.includes("rear") || label.includes("environment") || label.includes("belakang") || label.includes("main") || label.includes("primary")) {
+                        backCameras.push(device);
+                    }
                 }
 
-                if (rearCameras.length === 0) {
+                // JIKA TIDAK ADA YANG PASTI KAMERA BELAKANG: 
+                // Jangan menebak! Kembalikan null agar sistem otomatis memaksa kunci { exact: "environment" }
+                if (backCameras.length === 0) {
                     return null;
                 }
 
-                if (rearCameras.length === 1) {
-                    return rearCameras[0].id;
-                }
-
-                // Langkah 2: Berikan penilaian jika ada beberapa kamera belakang
-                let bestCamera = rearCameras[0];
+                // JIKA ADA BEBERAPA KAMERA BELAKANG: Pilih yang bukan Ultra-Wide / Macro
+                let bestCamera = backCameras[0];
                 let highestScore = -100;
 
-                for (const device of rearCameras) {
+                for (const device of backCameras) {
                     const label = (device.label || "").toLowerCase();
                     let score = 0;
 
-                    // Deteksi kamera belakang standar
-                    if (label.includes("back") || label.includes("rear") || label.includes("environment") || label.includes("camera 0") || label.includes("camera 1")) {
+                    // Prioritaskan Main/Primary camera standar
+                    if (label.includes("main") || label.includes("primary") || label.includes("standard")) {
                         score += 50;
                     }
 
-                    // Prioritaskan kamera utama / main / primary (memiliki jarak fokus makro standar)
-                    if (label.includes("main") || label.includes("primary") || label.includes("standard") || label.includes("biasa")) {
-                        score += 30;
+                    // Penalti berat untuk Ultra-Wide (membuat barcode menjadi bengkok/distorsi)
+                    if (label.includes("ultra") || (label.includes("wide") && !label.includes("main")) || label.includes("0.5")) {
+                        score -= 100;
                     }
 
-                    // Hindari lensa Ultra-Wide karena distorsi pinggiran membuat barcode sulit didekode
-                    if (label.includes("ultra") || (label.includes("wide") && label.includes("ultra")) || label.includes("0.5x") || label.includes("0.6x")) {
-                        score -= 60;
-                    }
-
-                    // Hindari juga lensa macro / telephoto super zoom yang sensitif getaran
-                    if (label.includes("tele") || label.includes("zoom") || label.includes("macro") || label.includes("depth") || label.includes("virtual")) {
-                        score -= 20;
+                    // Penalti untuk Macro/Telephoto/Depth sensor
+                    if (label.includes("macro") || label.includes("tele") || label.includes("depth") || label.includes("zoom")) {
+                        score -= 50;
                     }
 
                     if (score > highestScore) {
@@ -672,7 +667,7 @@
                     }
                 }
 
-                return bestCamera ? bestCamera.id : null;
+                return bestCamera.id;
             } catch (e) {
                 console.warn("Gagal mengevaluasi daftar kamera: ", e);
                 return null;
@@ -747,12 +742,17 @@
             };
 
             const bestCameraId = await getBestRearCameraId();
+            
+            // Konfigurasi target kamera belakang yang paling tangguh
+            const exactEnvironment = { facingMode: { exact: "environment" } };
+            const softEnvironment = { facingMode: "environment" };
+            const primaryCamTarget = bestCameraId ? bestCameraId : exactEnvironment;
 
             // Rangkaian Cascading Fallback Constraints (Adaptasi penuh multi-perangkat & iOS Safari)
             const attempts = [
-                // Upaya 1: ID Kamera Terbaik dengan resolusi tajam & rasio 4:3 standar
+                // Upaya 1: ID Kamera Terbaik (Atau Paksa Mutlak Kamera Belakang) + Resolusi HD
                 {
-                    cameraId: bestCameraId ? bestCameraId : { facingMode: "environment" },
+                    cameraId: primaryCamTarget,
                     config: {
                         fps: 30,
                         qrbox: getQrBoxSize,
@@ -763,31 +763,27 @@
                         }
                     }
                 },
-                // Upaya 2: ID Kamera Terbaik tanpa spesifikasi video rigid (Bagus untuk browser bawaan)
+                // Upaya 2: Lepas Paksaan Resolusi (Aman untuk Android yang membatasi API resolusi)
                 {
-                    cameraId: bestCameraId ? bestCameraId : { facingMode: "environment" },
+                    cameraId: primaryCamTarget,
                     config: {
                         fps: 30,
                         qrbox: getQrBoxSize,
                         aspectRatio: 1.333333
                     }
                 },
-                // Upaya 3: Mode Generik (facingMode "environment") + Resolusi Fleksibel
+                // Upaya 3: Mode Generik Asli (Bypass ketat untuk perangkat/iOS Safari tertentu)
                 {
-                    cameraId: { facingMode: "environment" },
+                    cameraId: softEnvironment,
                     config: {
                         fps: 30,
                         qrbox: getQrBoxSize,
-                        aspectRatio: 1.333333,
-                        videoConstraints: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
+                        aspectRatio: 1.333333
                     }
                 },
-                // Upaya 4: Skema Dasar Minimalis (Sangat aman untuk browser iOS Safari versi lawas)
+                // Upaya 4: Skema Dasar Minimalis (Sangat aman untuk browser versi lawas)
                 {
-                    cameraId: { facingMode: "environment" },
+                    cameraId: softEnvironment,
                     config: {
                         fps: 24,
                         qrbox: getQrBoxSize
