@@ -29,9 +29,9 @@
         
         /* Laser scanning animation inside the target box */
         @keyframes scanner-laser {
-            0% { top: 5%; }
-            50% { top: 95%; }
-            100% { top: 5%; }
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
         }
         .animate-scanner-laser {
             animation: scanner-laser 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -196,7 +196,7 @@
                 <div class="flex items-center gap-2">
                     <!-- PENTING: Tombol Ganti Kamera untuk Mengatasi Lensa 0.5x Buram di iPhone -->
                     <button id="switch-camera-btn" onclick="switchCamera()" class="hidden text-xs bg-white/10 hover:bg-white/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl font-bold transition-all">
-                        Putar Kamera 🔄
+                        Putar Lensa 🔄
                     </button>
                     <button onclick="stopScanner()" class="text-xs bg-white/10 hover:bg-red-500 text-slate-200 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
                         Tutup
@@ -211,14 +211,17 @@
                 <!-- Target/Scanner Overlay (iOS Style) -->
                 <div id="scanner-overlay" class="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center hidden">
                     <!-- Top semi-transparent mask -->
-                    <div class="w-full flex-1 bg-black/60"></div>
+                    <div class="w-full flex-1 bg-black/70"></div>
                     
-                    <!-- Scanner cutout container -->
-                    <div class="w-full flex h-[130px] items-center justify-between">
-                        <div class="h-full flex-1 bg-black/60"></div>
-                        <div class="w-[85%] h-full relative border border-emerald-400/50 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                    <!-- Scanner cutout container (DIOPTIMALKAN TIPIS UNTUK BARCODE 1D) -->
+                    <div class="w-full flex h-[100px] items-center justify-between">
+                        <div class="h-full flex-1 bg-black/70"></div>
+                        <div class="w-[88%] h-full relative border border-emerald-400 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.3)] bg-black/10">
                             <!-- Laser animation inside box -->
-                            <div class="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 left-0 animate-scanner-laser"></div>
+                            <div class="absolute w-full h-[2px] bg-emerald-400 top-0 left-0 animate-scanner-laser"></div>
+                            
+                            <!-- Red Alignment Line (PENTING: Garis merah lurus untuk membantu fokus barcode 1D) -->
+                            <div class="absolute w-full h-[1.5px] bg-red-500/80 shadow-[0_0_4px_#ef4444] top-1/2 left-0 -translate-y-1/2"></div>
                             
                             <!-- Corner brackets -->
                             <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-emerald-400 rounded-tl-sm"></div>
@@ -226,21 +229,26 @@
                             <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl-sm"></div>
                             <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-emerald-400 rounded-br-sm"></div>
                         </div>
-                        <div class="h-full flex-1 bg-black/60"></div>
+                        <div class="h-full flex-1 bg-black/70"></div>
                     </div>
                     
                     <!-- Bottom semi-transparent mask -->
-                    <div class="w-full flex-1 bg-black/60 flex flex-col items-center justify-start pt-4 gap-2">
+                    <div class="w-full flex-1 bg-black/70 flex flex-col items-center justify-start pt-4 gap-2">
                         <span class="text-[10px] font-bold text-white bg-emerald-500/95 px-3 py-1 rounded-full shadow-sm tracking-wide animate-pulse">
-                            Arahkan Barcode Mendatar
+                            Arahkan Garis Merah ke Tengah Barcode
                         </span>
-                        <span class="text-[9px] text-slate-300 max-w-[80%] text-center leading-relaxed">
-                            Posisikan barcode di dalam kotak hijau.<br>Dekatkan/jauhkan HP perlahan agar fokus.
-                        </span>
+                        
+                        <!-- TIPS KHUSUS UNTUK MEMBANTU LIMITASI SAFARI IPHONE -->
+                        <div class="bg-black/40 border border-white/10 rounded-xl p-2.5 max-w-[90%] text-center mt-2">
+                            <p class="text-[10px] font-bold text-amber-300 mb-0.5">⚠️ TIPS SCANNING IPHONE (SAFARI):</p>
+                            <p class="text-[9px] text-slate-200 leading-relaxed">
+                                Jangan terlalu dekat! Jauhkan HP sekitar <span class="font-bold text-white">15 - 20 cm</span> dari barcode agar kamera dapat fokus otomatis. Jika buram, ketuk tombol <span class="font-bold text-emerald-400">"Putar Lensa 🔄"</span> untuk pindah ke lensa kamera utama yang tajam.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <p class="text-[11px] text-slate-400 text-center mt-2.5">Arahkan kamera ke bagian barcode produk secara fokus</p>
+            <p class="text-[11px] text-slate-400 text-center mt-2.5">Posisikan barcode produk horizontal sejajar garis merah</p>
         </div>
 
         <!-- RESULTS LIST -->
@@ -731,12 +739,19 @@
             const config = {
                 fps: 25, // 25 FPS membuat pergerakan video mulus dan memudahkan ZXing menangkap gambar fokus
                 qrbox: (width, height) => {
-                    // Kotak horizontal panjang yang sesuai dengan struktur Barcode Produk EAN-13
-                    const boxWidth = Math.floor(width * 0.85);
-                    const boxHeight = Math.floor(height * 0.35);
+                    // DIBUAT JAUH LEBIH MELEBAR DAN TIPIS (0.90x lebar, 0.22x tinggi)
+                    // Sangat ideal untuk struktur barcode produk yang memanjang ke samping.
+                    const boxWidth = Math.floor(width * 0.90);
+                    const boxHeight = Math.floor(height * 0.22);
                     return { width: boxWidth, height: boxHeight };
                 },
-                aspectRatio: 1.777778 // Rasio aspek HD 16:9 yang didukung sempurna oleh semua lensa iPhone
+                videoConstraints: {
+                    facingMode: "environment",
+                    // MEMAKSA RESOLUSI FULL HD (1080p) PADA IPHONE
+                    // Ini membuat detail garis-garis barcode 1D yang tipis terekam super tajam meskipun HP dijauhkan
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
             };
 
             await qr.start(
