@@ -26,19 +26,15 @@
             background: #cbd5e1;
             border-radius: 10px;
         }
-        /* Scanner laser */
-        @keyframes scan {
-            0% { top: 0%; }
-            50% { top: 100%; }
-            100% { top: 0%; }
+        
+        /* Laser scanning animation inside the target box */
+        @keyframes scanner-laser {
+            0% { top: 5%; }
+            50% { top: 95%; }
+            100% { top: 5%; }
         }
-        .scanner-laser {
-            position: absolute;
-            height: 3px;
-            width: 100%;
-            background: linear-gradient(to right, transparent, #10b981, transparent);
-            animation: scan 2s linear infinite;
-            box-shadow: 0 0 10px #10b981;
+        .animate-scanner-laser {
+            animation: scanner-laser 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         
         /* Reset style bawaan html5-qrcode */
@@ -198,11 +194,40 @@
                 </button>
             </div>
             
-            <div class="relative rounded-2xl bg-black border border-slate-800 p-0.5">
+            <!-- Beautiful Frame Container -->
+            <div class="relative rounded-2xl bg-black border border-slate-800 p-0.5 overflow-hidden min-h-[220px] flex items-center justify-center">
                 <div id="reader" class="w-full"></div>
-                <!-- Laser Overlay -->
-                <div id="laser-effect" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 hidden">
-                    <div class="scanner-laser"></div>
+                
+                <!-- Target/Scanner Overlay (iOS Style) -->
+                <div id="scanner-overlay" class="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center hidden">
+                    <!-- Top semi-transparent mask -->
+                    <div class="w-full flex-1 bg-black/60"></div>
+                    
+                    <!-- Scanner cutout container -->
+                    <div class="w-full flex h-[130px] items-center justify-between">
+                        <div class="h-full flex-1 bg-black/60"></div>
+                        <div class="w-[85%] h-full relative border border-emerald-400/50 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                            <!-- Laser animation inside box -->
+                            <div class="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 left-0 animate-scanner-laser"></div>
+                            
+                            <!-- Corner brackets -->
+                            <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-emerald-400 rounded-tl-sm"></div>
+                            <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-emerald-400 rounded-tr-sm"></div>
+                            <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl-sm"></div>
+                            <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-emerald-400 rounded-br-sm"></div>
+                        </div>
+                        <div class="h-full flex-1 bg-black/60"></div>
+                    </div>
+                    
+                    <!-- Bottom semi-transparent mask -->
+                    <div class="w-full flex-1 bg-black/60 flex flex-col items-center justify-start pt-4 gap-2">
+                        <span class="text-[10px] font-bold text-white bg-emerald-500/95 px-3 py-1 rounded-full shadow-sm tracking-wide animate-pulse">
+                            Arahkan Barcode Mendatar
+                        </span>
+                        <span class="text-[9px] text-slate-300 max-w-[80%] text-center leading-relaxed">
+                            Posisikan barcode di dalam kotak hijau.<br>Dekatkan/jauhkan HP perlahan agar fokus.
+                        </span>
+                    </div>
                 </div>
             </div>
             <p class="text-[11px] text-slate-400 text-center mt-2.5">Arahkan kamera ke bagian barcode produk secara fokus</p>
@@ -603,7 +628,7 @@
             };
         }
 
-        // --- PENGATURAN KAMERA YANG DIPERBAIKI UNTUK IOS (IPHONE) ---
+        // --- PENGATURAN KAMERA OPTIMAL UNTUK IPHONE & BARCODE 1D ---
         function startScanner() {
             if (qr) {
                 stopScanner();
@@ -611,25 +636,47 @@
             }
 
             const wrapper = document.getElementById("scanner-wrapper");
-            const laser = document.getElementById("laser-effect");
+            const overlay = document.getElementById("scanner-overlay");
             
             wrapper.classList.remove("hidden");
-            laser.classList.remove("hidden");
+            if (overlay) overlay.classList.remove("hidden");
             document.getElementById("reader").innerHTML = "";
 
-            qr = new Html5Qrcode("reader");
+            // MEMBATASI FORMAT SCANNER AGAR FOKUS HANYA PADA BARCODE PRODUK & QR
+            let formats = [];
+            if (typeof Html5QrcodeSupportedFormats !== "undefined") {
+                formats = [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.QR_CODE
+                ];
+            }
+
+            qr = new Html5Qrcode("reader", { formatsToSupport: formats });
             
-            // Konfigurasi yang bersahabat untuk iOS Safari & Android
+            // Konfigurasi performa tinggi yang disukai Safari iOS
             qr.start(
-                { facingMode: "environment" }, // Memastikan kamera belakang yang terpilih
+                { facingMode: "environment" }, // Kamera belakang utama
                 { 
-                    fps: 10, // 10 FPS sudah lebih dari cukup dan stabil untuk mayoritas handphone
+                    fps: 20, // 20 fps memberikan keseimbangan optimal antara kestabilan dan ketajaman tangkapan
                     qrbox: (width, height) => {
-                        // Membuat kotak scan dinamis berdasarkan layar tanpa memaksa constraint resolusi
-                        const size = Math.min(width, height) * 0.70;
-                        return { width: size, height: size * 0.6 };
+                        // Barcode 1D (produk) melebar secara horizontal.
+                        // Kotak scan disesuaikan melebar (85% lebar dan 40% tinggi video)
+                        // agar seluruh garis barcode masuk sempurna ke zona dekode.
+                        const boxWidth = Math.floor(width * 0.85);
+                        const boxHeight = Math.floor(height * 0.40);
+                        return { width: boxWidth, height: boxHeight };
+                    },
+                    videoConstraints: {
+                        facingMode: "environment",
+                        // Meminta resolusi HD ideal agar garis barcode 1D terdefinisi tajam di sensor iPhone
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     }
-                    // PENTING: aspectRatio dan strict videoConstraints dihapus karena sering ditolak oleh perangkat iPhone
                 },
                 (decoded) => {
                     keywordInput.value = decoded;
@@ -644,32 +691,32 @@
                     showToast("Sukses", "Barcode berhasil dipindai!", "success");
                 },
                 (error) => {
-                    // Dibiarkan kosong agar console tidak dipenuhi log error saat sedang proses mencari fokus ke barcode
+                    // Dibiarkan kosong tanpa log agar performa CPU di iPhone tetap ringan saat mencari fokus
                 }
             ).catch(err => {
                 console.error("Gagal mengakses kamera:", err);
-                showToast("Kamera Gagal", "Pastikan Anda memberikan izin kamera & membukanya via HTTPS.", "error");
+                showToast("Kamera Gagal", "Pastikan memberikan izin kamera & buka situs via HTTPS.", "error");
                 stopScanner();
             });
         }
 
         function stopScanner() {
+            const overlay = document.getElementById("scanner-overlay");
+            if (overlay) overlay.classList.add("hidden");
+
             if (qr) {
                 qr.stop().then(() => {
                     qr = null;
                     document.getElementById("scanner-wrapper").classList.add("hidden");
-                    document.getElementById("laser-effect").classList.add("hidden");
                     document.getElementById("reader").innerHTML = "";
                 }).catch(err => {
                     console.error("Gagal menghentikan scanner", err);
                     qr = null;
                     document.getElementById("scanner-wrapper").classList.add("hidden");
-                    document.getElementById("laser-effect").classList.add("hidden");
                     document.getElementById("reader").innerHTML = "";
                 });
             } else {
                 document.getElementById("scanner-wrapper").classList.add("hidden");
-                document.getElementById("laser-effect").classList.add("hidden");
             }
         }
     </script>
