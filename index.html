@@ -84,9 +84,9 @@
             <!-- Pulsing Elegant Ring -->
             <div class="absolute w-36 h-36 bg-pink-100/60 rounded-full animate-ping"></div>
             
-            <!-- Modern Store Logo Container (Menggunakan Gambar Logo Surtok 3D) -->
+            <!-- Modern Store Logo Container -->
             <div class="relative mb-6">
-                <img src="Logo%20Surtok%203D.png" onerror="handleLogoError(this, 'splash')" class="h-20 w-20 object-contain">
+                <img src="Logo%20Surtok%203D.png" class="h-20 w-20 object-contain" onerror="handleLogoError(this, 'splash')">
             </div>
             
             <!-- Brand & Status Loading Text -->
@@ -110,7 +110,7 @@
             
             <div class="relative z-10 flex flex-col items-center text-center">
                 <div class="mb-3">
-                    <img src="Logo%20Surtok%203D.png" onerror="handleLogoError(this, 'header')" class="h-12 w-12 object-contain">
+                    <img src="Logo%20Surtok%203D.png" class="h-12 w-12 object-contain" onerror="handleLogoError(this, 'header')">
                 </div>
                 
                 <h1 class="text-[10px] font-bold uppercase tracking-wider text-pink-100 mb-0.5">Sistem Cek Harga</h1>
@@ -144,7 +144,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                         </svg>
-                    </</button>
+                    </button>
                 </div>
 
                 <!-- 2. MAIN SEARCH INPUT -->
@@ -193,7 +193,7 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                     Kamera Aktif
                 </span>
-                <button onclick="stopScanner()" class="text-xs bg-white/10 hover:bg-red-500 text-slate-250 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
+                <button onclick="stopScanner()" class="text-xs bg-white/10 hover:bg-red-500 text-slate-200 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
                     Tutup
                 </button>
             </div>
@@ -603,111 +603,8 @@
             };
         }
 
-        // --- OPTIMIZED CAMERA SCANNER LOGIC ---
-
-        // Fungsi pembantu cerdas mencari modul kamera belakang terbaik (menghindari ultra-wide/distorsi)
-        async function getBestRearCameraId() {
-            try {
-                const devices = await Html5Qrcode.getCameras();
-                if (!devices || devices.length === 0) return null;
-
-                // JIKA LABEL KAMERA KOSONG (browser menyembunyikan karena privasi):
-                const hasLabels = devices.some(d => d.label && d.label.trim() !== "");
-                if (!hasLabels) return null;
-
-                let backCameras = [];
-
-                for (const device of devices) {
-                    const label = (device.label || "").toLowerCase();
-                    
-                    // 1. FILTER MUTLAK: Buang semua yang terindikasi kamera depan
-                    if (label.includes("front") || label.includes("selfie") || label.includes("user") || label.includes("depan")) {
-                        continue;
-                    }
-
-                    // 2. TANGKAP PASTI: Hanya ambil yang TERBUKTI kamera belakang/utama
-                    // (Mencegah tebakan tebakan "camera 0" yang sering bocor jadi kamera depan)
-                    if (label.includes("back") || label.includes("rear") || label.includes("environment") || label.includes("belakang") || label.includes("main") || label.includes("primary")) {
-                        backCameras.push(device);
-                    }
-                }
-
-                // JIKA TIDAK ADA YANG PASTI KAMERA BELAKANG: 
-                // Jangan menebak! Kembalikan null agar sistem otomatis memaksa kunci { exact: "environment" }
-                if (backCameras.length === 0) {
-                    return null;
-                }
-
-                // JIKA ADA BEBERAPA KAMERA BELAKANG: Pilih yang bukan Ultra-Wide / Macro
-                let bestCamera = backCameras[0];
-                let highestScore = -100;
-
-                for (const device of backCameras) {
-                    const label = (device.label || "").toLowerCase();
-                    let score = 0;
-
-                    // Prioritaskan Main/Primary camera standar
-                    if (label.includes("main") || label.includes("primary") || label.includes("standard")) {
-                        score += 50;
-                    }
-
-                    // Penalti berat untuk Ultra-Wide (membuat barcode menjadi bengkok/distorsi)
-                    if (label.includes("ultra") || (label.includes("wide") && !label.includes("main")) || label.includes("0.5")) {
-                        score -= 100;
-                    }
-
-                    // Penalti untuk Macro/Telephoto/Depth sensor
-                    if (label.includes("macro") || label.includes("tele") || label.includes("depth") || label.includes("zoom")) {
-                        score -= 50;
-                    }
-
-                    if (score > highestScore) {
-                        highestScore = score;
-                        bestCamera = device;
-                    }
-                }
-
-                return bestCamera.id;
-            } catch (e) {
-                console.warn("Gagal mengevaluasi daftar kamera: ", e);
-                return null;
-            }
-        }
-
-        // Fungsi konfigurasi kontrol focus berkelanjutan & perbesaran anti-distorsi
-        function optimizeCameraTrackSettings() {
-            try {
-                if (!qr) return;
-                const track = qr.getRunningTrack();
-                if (track && typeof track.getCapabilities === 'function') {
-                    const capabilities = track.getCapabilities();
-                    const constraints = {};
-
-                    // 1. Paksa mode fokus kontinu untuk menajamkan barcode garis
-                    if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-                        constraints.focusMode = 'continuous';
-                    }
-
-                    // 2. Berikan sedikit digital zoom (1.35x) untuk menetralkan distorsi lensa wide-angle bawaan HP modern
-                    if (capabilities.zoom) {
-                        const minZoom = capabilities.zoom.min || 1;
-                        const maxZoom = capabilities.zoom.max || 1;
-                        const targetZoom = Math.min(minZoom * 1.35, maxZoom);
-                        if (targetZoom > minZoom) {
-                            constraints.zoom = targetZoom;
-                        }
-                    }
-
-                    if (Object.keys(constraints).length > 0) {
-                        track.applyConstraints({ advanced: [constraints] }).catch(() => {});
-                    }
-                }
-            } catch (e) {
-                console.warn("Gagal mengoptimalkan setelan track kamera WebRTC: ", e);
-            }
-        }
-
-        async function startScanner() {
+        // --- PENGATURAN KAMERA YANG DIPERBAIKI UNTUK IOS (IPHONE) ---
+        function startScanner() {
             if (qr) {
                 stopScanner();
                 return;
@@ -721,124 +618,39 @@
             document.getElementById("reader").innerHTML = "";
 
             qr = new Html5Qrcode("reader");
-
-            // Hanya batasi format barcode yang umum untuk produk retail toko (Meningkatkan performa decoder secara signifikan)
-            let supportedFormats = [];
-            if (typeof Html5QrcodeSupportedFormats !== "undefined") {
-                supportedFormats = [
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.CODE_128
-                ];
-            }
-
-            // Area scan terfokus horizontal (Cocok untuk barcode garis yang melebar, menghemat daya CPU)
-            const getQrBoxSize = (width, height) => {
-                const boxWidth = Math.floor(Math.min(width * 0.85, 360));
-                const boxHeight = Math.floor(Math.min(height * 0.35, 130));
-                return { width: boxWidth, height: boxHeight };
-            };
-
-            const bestCameraId = await getBestRearCameraId();
             
-            // Konfigurasi target kamera belakang yang paling tangguh
-            const exactEnvironment = { facingMode: { exact: "environment" } };
-            const softEnvironment = { facingMode: "environment" };
-            const primaryCamTarget = bestCameraId ? bestCameraId : exactEnvironment;
-
-            // Rangkaian Cascading Fallback Constraints (Adaptasi penuh multi-perangkat & iOS Safari)
-            const attempts = [
-                // Upaya 1: ID Kamera Terbaik (Atau Paksa Mutlak Kamera Belakang) + Resolusi HD
-                {
-                    cameraId: primaryCamTarget,
-                    config: {
-                        fps: 30,
-                        qrbox: getQrBoxSize,
-                        aspectRatio: 1.333333,
-                        videoConstraints: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
+            // Konfigurasi yang bersahabat untuk iOS Safari & Android
+            qr.start(
+                { facingMode: "environment" }, // Memastikan kamera belakang yang terpilih
+                { 
+                    fps: 10, // 10 FPS sudah lebih dari cukup dan stabil untuk mayoritas handphone
+                    qrbox: (width, height) => {
+                        // Membuat kotak scan dinamis berdasarkan layar tanpa memaksa constraint resolusi
+                        const size = Math.min(width, height) * 0.70;
+                        return { width: size, height: size * 0.6 };
                     }
+                    // PENTING: aspectRatio dan strict videoConstraints dihapus karena sering ditolak oleh perangkat iPhone
                 },
-                // Upaya 2: Lepas Paksaan Resolusi (Aman untuk Android yang membatasi API resolusi)
-                {
-                    cameraId: primaryCamTarget,
-                    config: {
-                        fps: 30,
-                        qrbox: getQrBoxSize,
-                        aspectRatio: 1.333333
-                    }
-                },
-                // Upaya 3: Mode Generik Asli (Bypass ketat untuk perangkat/iOS Safari tertentu)
-                {
-                    cameraId: softEnvironment,
-                    config: {
-                        fps: 30,
-                        qrbox: getQrBoxSize,
-                        aspectRatio: 1.333333
-                    }
-                },
-                // Upaya 4: Skema Dasar Minimalis (Sangat aman untuk browser versi lawas)
-                {
-                    cameraId: softEnvironment,
-                    config: {
-                        fps: 24,
-                        qrbox: getQrBoxSize
-                    }
-                }
-            ];
-
-            // Eksekusi runtunan inisiasi
-            let success = false;
-            for (let i = 0; i < attempts.length; i++) {
-                try {
-                    const attempt = attempts[i];
+                (decoded) => {
+                    keywordInput.value = decoded;
+                    clearBtn.classList.remove("hidden");
                     
-                    // Suntik format barcode & fitur eksperimental penunjang performa
-                    attempt.config.formatsToSupport = supportedFormats;
-                    attempt.config.experimentalFeatures = {
-                        useBarCodeDetectorIfSupported: true // Gunakan native API bawaan sistem jika OS mendukung
-                    };
+                    if (navigator.vibrate) {
+                        navigator.vibrate(100);
+                    }
 
-                    await qr.start(
-                        attempt.cameraId,
-                        attempt.config,
-                        (decoded) => {
-                            keywordInput.value = decoded;
-                            clearBtn.classList.remove("hidden");
-                            
-                            if (navigator.vibrate) {
-                                try {
-                                    navigator.vibrate(100);
-                                } catch(vErr){}
-                            }
-
-                            stopScanner();
-                            cariProduk();
-                            showToast("Sukses", "Barcode berhasil dipindai!", "success");
-                        },
-                        (error) => {
-                            // Menghindari log error pencarian frame demi menjaga performa CPU tetap dingin
-                        }
-                    );
-
-                    // Optimalkan autofocus & digital zoom pasca kamera aktif
-                    optimizeCameraTrackSettings();
-                    
-                    success = true;
-                    break; 
-                } catch (err) {
-                    console.warn(`Upaya pemuatan kamera ke-${i + 1} gagal, mencoba cadangan selanjutnya...`, err);
+                    stopScanner();
+                    cariProduk();
+                    showToast("Sukses", "Barcode berhasil dipindai!", "success");
+                },
+                (error) => {
+                    // Dibiarkan kosong agar console tidak dipenuhi log error saat sedang proses mencari fokus ke barcode
                 }
-            }
-
-            if (!success) {
-                showToast("Akses Ditolak", "Gagal mengaktifkan kamera atau izin kamera ditolak perangkat.", "error");
+            ).catch(err => {
+                console.error("Gagal mengakses kamera:", err);
+                showToast("Kamera Gagal", "Pastikan Anda memberikan izin kamera & membukanya via HTTPS.", "error");
                 stopScanner();
-            }
+            });
         }
 
         function stopScanner() {
@@ -849,7 +661,7 @@
                     document.getElementById("laser-effect").classList.add("hidden");
                     document.getElementById("reader").innerHTML = "";
                 }).catch(err => {
-                    console.error("Gagal menghentikan scanner dengan aman:", err);
+                    console.error("Gagal menghentikan scanner", err);
                     qr = null;
                     document.getElementById("scanner-wrapper").classList.add("hidden");
                     document.getElementById("laser-effect").classList.add("hidden");
