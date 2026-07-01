@@ -51,7 +51,7 @@
         
         /* Glassmorphism Classes */
         .glass-panel {
-            background: rgba(21, 23, 30, 0.75);
+            background: rgba(15, 17, 21, 0.4); /* Meningkatkan transparansi bar atas dan bawah */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -167,8 +167,9 @@
     <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0">
         <!-- Logo & Title Info -->
         <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-suryared-600 rounded-xl flex items-center justify-center shadow-lg shadow-suryared-600/30">
-                <i class="fa-solid fa-tv text-2xl text-white"></i>
+            <!-- Penggantian ke Logo Surtok 3D.png dengan Fail-safe Fallback -->
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/40">
+                <img src="Logo Surtok 3D.png" alt="Logo Surtok 3D" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://placehold.co/48x48/ef4444/ffffff?text=ST';">
             </div>
             <div>
                 <div class="flex items-center gap-2">
@@ -193,8 +194,8 @@
                 <span id="apiStatusText">API Ready</span>
             </div>
 
-            <!-- Digital Clock Realtime -->
-            <div class="flex flex-col items-end border-l border-white/10 pl-6">
+            <!-- Digital Clock Realtime dengan ruang lebar tetap agar tidak bergeser -->
+            <div class="flex flex-col items-end border-l border-white/10 pl-6 min-w-[150px] shrink-0">
                 <span id="currentTime" class="orbitron text-2xl font-bold tracking-wider text-white">12:00:00</span>
                 <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">MINGGU, 28 JUNI 2026</span>
             </div>
@@ -332,9 +333,9 @@
             </span>
         </div>
 
-        <!-- Right Side: Playback Controls & Volume Slider/Status -->
+        <!-- Right Side: Playback Controls & Video Duration Indicator -->
         <div class="flex items-center gap-4">
-            <!-- Playback Buttons (Left of Volume) -->
+            <!-- Playback Buttons -->
             <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-xl">
                 <button onclick="putarVideoSebelumnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Kembali (P)">
                     <i class="fa-solid fa-backward-step text-sm"></i>
@@ -347,23 +348,10 @@
                 </button>
             </div>
 
-            <!-- Volume Control System -->
-            <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-xl">
-                <button id="btnMute" onclick="toggleMute()" class="w-8 h-8 hover:bg-white/10 text-gray-400 hover:text-white rounded-lg flex items-center justify-center transition-colors" title="Bungkam (M)">
-                    <i id="muteIcon" class="fa-solid fa-volume-high text-xs"></i>
-                </button>
-                <input 
-                    type="range" 
-                    id="volumeSlider" 
-                    min="0" 
-                    max="100" 
-                    value="80" 
-                    oninput="adjustVolume(this.value)" 
-                    class="w-20 accent-suryared-500 h-1 bg-gray-700 rounded-lg cursor-pointer"
-                >
-                <span class="text-xs text-gray-400 font-semibold min-w-[70px]">
-                    Volume: <strong id="footerVolume" class="text-gray-200">80%</strong>
-                </span>
+            <!-- Indikator Durasi Video Aktif (Pengganti Indikator Volume) -->
+            <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-gray-300">
+                <i class="fa-solid fa-hourglass-half text-suryared-500 animate-pulse"></i>
+                <span id="videoDurationText" class="orbitron font-semibold tracking-wider text-xs">00:00 / 00:00</span>
             </div>
         </div>
     </footer>
@@ -1063,6 +1051,23 @@
 
                 document.getElementById("currentTime").textContent = `${jam}:${menit}:${detik}`;
                 document.getElementById("currentDate").textContent = tglString.toUpperCase();
+            }, 1000);
+
+            // Per pemutaran detik: Perbarui realtime waktu durasi video YouTube di bar bawah
+            setInterval(() => {
+                if (playerReady && player && typeof player.getCurrentTime === 'function' && typeof player.getDuration === 'function') {
+                    try {
+                        const current = player.getCurrentTime();
+                        const total = player.getDuration();
+                        if (total > 0) {
+                            document.getElementById("videoDurationText").textContent = `${formatTime(current)} / ${formatTime(total)}`;
+                        } else {
+                            document.getElementById("videoDurationText").textContent = `00:00 / 00:00`;
+                        }
+                    } catch (e) {
+                        // Fail-safe
+                    }
+                }
             }, 1000);
         }
 
