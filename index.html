@@ -168,7 +168,7 @@
         <!-- Logo & Title Info -->
         <div class="flex items-center gap-4">
             <!-- Penggantian ke Logo Surtok 3D.png dengan Fail-safe Fallback -->
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/40">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/40 shrink-0">
                 <img src="Logo Surtok 3D.png" alt="Logo Surtok 3D" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://placehold.co/48x48/ef4444/ffffff?text=ST';">
             </div>
             <div>
@@ -181,27 +181,27 @@
         </div>
 
         <!-- Right Side Widgets (Clock, Network Status, API Status) -->
-        <div class="flex items-center gap-6">
-            <!-- Connection Status -->
-            <div class="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400">
+        <div class="flex items-center gap-6 shrink-0">
+            <!-- Connection Status (Stable Width) -->
+            <div class="hidden sm:flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 shrink-0 min-w-[85px]">
                 <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
                 <span id="internetStatus">Online</span>
             </div>
             
-            <!-- YouTube API Indicator -->
-            <div id="apiIndicator" class="hidden md:flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-400">
+            <!-- YouTube API Indicator (Stable Width) -->
+            <div id="apiIndicator" class="hidden md:flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-400 shrink-0 min-w-[100px]">
                 <i class="fa-brands fa-youtube"></i>
                 <span id="apiStatusText">API Ready</span>
             </div>
 
             <!-- Digital Clock Realtime dengan ruang lebar tetap agar tidak bergeser -->
-            <div class="flex flex-col items-end border-l border-white/10 pl-6 min-w-[150px] shrink-0">
-                <span id="currentTime" class="orbitron text-2xl font-bold tracking-wider text-white">12:00:00</span>
-                <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">MINGGU, 28 JUNI 2026</span>
+            <div class="flex flex-col items-end border-l border-white/10 pl-6 w-[180px] min-w-[180px] shrink-0">
+                <span id="currentTime" class="orbitron text-2xl font-bold tracking-wider text-white tabular-nums">12:00:00</span>
+                <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5 whitespace-nowrap">MINGGU, 28 JUNI 2026</span>
             </div>
 
             <!-- Sidebar Toggle (Mobile Friendly) & Fullscreen Buttons -->
-            <div class="flex items-center gap-2 pl-4 border-l border-white/10">
+            <div class="flex items-center gap-2 pl-4 border-l border-white/10 shrink-0">
                 <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Playlist">
                     <i class="fa-solid fa-list-ul"></i>
                 </button>
@@ -313,30 +313,30 @@
 
     <!-- FOOTER PANEL SYSTEM -->
     <footer id="mainFooter" class="h-14 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0">
-        <!-- Left Side: Playlist Status Info -->
-        <div class="flex items-center gap-4">
+        <!-- Left Side: Playlist Status Info (Stable Width) -->
+        <div class="flex items-center gap-4 shrink-0 min-w-[200px]">
             <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-suryared-500 animate-pulse"></i> Suryatokoku Network</span>
             <span>•</span>
             <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400 font-bold">0 Video</strong></span>
         </div>
 
-        <!-- Middle Side: RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS -->
-        <div class="flex items-center gap-4">
+        <!-- Middle Side: RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS (Stable Width) -->
+        <div class="flex items-center justify-center gap-4 shrink-0 min-w-[340px]">
             <!-- Next Promo Badge -->
-            <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400 font-bold">
+            <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400 font-bold shrink-0">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 Next Promo: <span id="nextPromoTime" class="font-bold">--:--</span>
             </span>
             <!-- Active Promo Audio Track Meta -->
-            <span id="activePromoTrack" class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg">
+            <span id="activePromoTrack" class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg shrink-0">
                 <i class="fa-solid fa-music text-gray-400"></i> No Promo Audio Running
             </span>
         </div>
 
-        <!-- Right Side: Playback Controls & Video Duration Indicator -->
-        <div class="flex items-center gap-4">
+        <!-- Right Side: Playback Controls & Video Duration Indicator (Stable Width) -->
+        <div class="flex items-center justify-end gap-4 shrink-0 min-w-[340px]">
             <!-- Playback Buttons -->
-            <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-xl">
+            <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-xl shrink-0">
                 <button onclick="putarVideoSebelumnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Kembali (P)">
                     <i class="fa-solid fa-backward-step text-sm"></i>
                 </button>
@@ -348,10 +348,10 @@
                 </button>
             </div>
 
-            <!-- Indikator Durasi Video Aktif (Pengganti Indikator Volume) -->
-            <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-gray-300">
+            <!-- Indikator Durasi Video Aktif (Fixed Width with Tabular Numbers) -->
+            <div class="flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-gray-300 w-[170px] min-w-[170px] shrink-0">
                 <i class="fa-solid fa-hourglass-half text-suryared-500 animate-pulse"></i>
-                <span id="videoDurationText" class="orbitron font-semibold tracking-wider text-xs">00:00 / 00:00</span>
+                <span id="videoDurationText" class="orbitron font-semibold tracking-wider text-xs tabular-nums">00:00:00 / 00:00:00</span>
             </div>
         </div>
     </footer>
@@ -535,9 +535,6 @@
             showToast(`Gagal memutar video ini. Silakan pilih video lain pada playlist.`, "error");
         }
 
-        /* ==========================================================================
-           STREAMING_CHUNK: Setting up asynchronous scroll loading & searching...
-           ========================================================================== */
         /* ==========================================================================
            YOUTUBE SEARCH & CORE MUSIC PLAYLIST LOGIC
            ========================================================================== */
@@ -794,37 +791,12 @@
         function toggleMute() {
             if (!playerReady) return;
             isMuted = !isMuted;
-            const muteIcon = document.getElementById("muteIcon");
-            const slider = document.getElementById("volumeSlider");
-            
             if (isMuted) {
                 player.mute();
-                muteIcon.className = "fa-solid fa-volume-xmark text-suryared-500 animate-pulse";
-                slider.value = 0;
-                document.getElementById("footerVolume").textContent = `0%`;
                 showToast("Suara Dibungkam", "info");
             } else {
                 player.unmute();
-                muteIcon.className = "fa-solid fa-volume-high text-white";
-                slider.value = currentVolume;
-                document.getElementById("footerVolume").textContent = `${currentVolume}%`;
                 showToast("Suara Aktif", "info");
-            }
-        }
-
-        function adjustVolume(val) {
-            currentVolume = val;
-            document.getElementById("footerVolume").textContent = `${val}%`;
-            document.getElementById("volumeSlider").value = val;
-            if (playerReady && player) {
-                player.setVolume(val);
-                if (val == 0) {
-                    document.getElementById("muteIcon").className = "fa-solid fa-volume-xmark text-suryared-500";
-                } else {
-                    document.getElementById("muteIcon").className = "fa-solid fa-volume-high text-white";
-                    player.unmute();
-                    isMuted = false;
-                }
             }
         }
 
@@ -867,9 +839,6 @@
             }
         }
 
-        /* ==========================================================================
-           STREAMING_CHUNK: Integrating timing schedules & audio broadcasting...
-           ========================================================================== */
         /* ==========================================================================
            BROADCAST JADWAL PROMOSI AUDIO (CRITICAL CORE ENGINE)
            ========================================================================== */
@@ -987,9 +956,6 @@
         }
 
         /* ==========================================================================
-           STREAMING_CHUNK: Setup automatic hide and sidebar slide out transition...
-           ========================================================================== */
-        /* ==========================================================================
            TV AUTO-HIDE & SIDEBAR TIMERS (CLEAN DISPLAY CONFIGURATION)
            ========================================================================== */
         // SIDEBAR 15s AUTO-HIDE SYSTEM
@@ -1053,7 +1019,7 @@
                 document.getElementById("currentDate").textContent = tglString.toUpperCase();
             }, 1000);
 
-            // Per pemutaran detik: Perbarui realtime waktu durasi video YouTube di bar bawah
+            // Per pemutaran detik: Perbarui realtime waktu durasi video YouTube di bar bawah dalam format HH:MM:SS
             setInterval(() => {
                 if (playerReady && player && typeof player.getCurrentTime === 'function' && typeof player.getDuration === 'function') {
                     try {
@@ -1062,7 +1028,7 @@
                         if (total > 0) {
                             document.getElementById("videoDurationText").textContent = `${formatTime(current)} / ${formatTime(total)}`;
                         } else {
-                            document.getElementById("videoDurationText").textContent = `00:00 / 00:00`;
+                            document.getElementById("videoDurationText").textContent = `00:00:00 / 00:00:00`;
                         }
                     } catch (e) {
                         // Fail-safe
@@ -1132,10 +1098,12 @@
             });
         }
 
+        // Format waktu robust ke format Jam:Menit:Detik (HH:MM:SS) yang presisi & stabil
         function formatTime(secs) {
-            const m = Math.floor(secs / 60);
+            const h = Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
             const s = Math.floor(secs % 60);
-            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
         function scrollToActiveVideo() {
