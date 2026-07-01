@@ -1,116 +1,77 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scan Barcode Produk</title>
-
-<script src="https://unpkg.com/@zxing/library@latest"></script>
-
-<style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#f5f5f5;
-    text-align:center;
-}
-
-h2{
-    margin:20px 0;
-}
-
-#video{
-    width:95%;
-    max-width:500px;
-    border-radius:12px;
-    background:#000;
-}
-
-#hasil{
-    margin-top:20px;
-    font-size:22px;
-    font-weight:bold;
-    color:#1565c0;
-}
-
-button{
-    margin:15px;
-    padding:12px 24px;
-    font-size:18px;
-    border:none;
-    border-radius:8px;
-    background:#1976d2;
-    color:white;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#125ea7;
-}
-</style>
-
-</head>
-
-<body>
-
-<h2>Scan Barcode Produk</h2>
-
-<video id="video"></video>
-
-<div id="hasil">
-Belum ada barcode
-</div>
-
-<button onclick="mulaiScan()">Mulai Scan</button>
-
 <script>
 
 const codeReader = new ZXing.BrowserMultiFormatReader();
 
+let controls = null;
+
 async function mulaiScan(){
 
-document.getElementById("hasil").innerHTML="Membuka kamera...";
+    try{
 
-const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+        document.getElementById("hasil").innerHTML="Meminta izin kamera...";
 
-let cameraId = devices[0].deviceId;
+        // Minta izin kamera terlebih dahulu
+        await navigator.mediaDevices.getUserMedia({
+            video:{
+                facingMode:{ideal:"environment"}
+            }
+        });
 
-for(const d of devices){
+        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
 
-const nama=d.label.toLowerCase();
+        if(devices.length===0){
+            alert("Tidak ditemukan kamera.");
+            return;
+        }
 
-if(
-nama.includes("back")||
-nama.includes("rear")||
-nama.includes("environment")
-){
-cameraId=d.deviceId;
-}
+        let cameraId = devices[0].deviceId;
 
-}
+        // Pilih kamera belakang jika ada
+        devices.forEach(device=>{
 
-codeReader.decodeFromVideoDevice(
-cameraId,
-'video',
-(result,err)=>{
+            const label=(device.label||"").toLowerCase();
 
-if(result){
+            if(
+                label.includes("back") ||
+                label.includes("rear") ||
+                label.includes("environment")
+            ){
+                cameraId=device.deviceId;
+            }
 
-document.getElementById("hasil").innerHTML=result.text;
+        });
 
-navigator.vibrate?.(150);
+        document.getElementById("hasil").innerHTML="Membuka kamera...";
 
-codeReader.reset();
+        controls = await codeReader.decodeFromVideoDevice(
+            cameraId,
+            "video",
+            (result,error)=>{
 
-}
+                if(result){
 
-}
+                    document.getElementById("hasil").innerHTML=result.text;
 
-);
+                    navigator.vibrate?.(100);
+
+                    controls.stop();
+
+                }
+
+            }
+        );
+
+    }catch(err){
+
+        console.error(err);
+
+        alert(
+            "Gagal membuka kamera.\n\n"+
+            err.message
+        );
+
+    }
 
 }
 
 </script>
-
-</body>
-</html>
