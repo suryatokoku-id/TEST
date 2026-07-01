@@ -495,6 +495,9 @@
         let isLoadingMore = false;
         let currentKeyword = "";
 
+        // Tambahan State untuk Jadwal Promo Realtime
+        let lastRenderedMinute = -1;
+
         /* ==========================================================================
            UI ELEMENTS BINDING
            ========================================================================== */
@@ -936,6 +939,7 @@
             const now = new Date();
             const jam = String(now.getHours()).padStart(2, '0');
             const menit = String(now.getMinutes()).padStart(2, '0');
+            const currentMinute = now.getMinutes();
             const waktuSekarang = `${jam}:${menit}`;
 
             jadwalPromo.forEach(promo => {
@@ -949,7 +953,113 @@
             
             // Hitung jadwal promo berikutnya untuk ditampilkan di panel bawah
             updatePromoScheduleDisplay();
+
+            // Refresh tampilan list jadwal promo setiap menit berubah (untuk memindahkan lencana 'NEXT')
+            if (currentMinute !== lastRenderedMinute) {
+                lastRenderedMinute = currentMinute;
+                const promoDiv = document.getElementById("promoScheduleList");
+                if (promoDiv && !promoDiv.classList.contains("hidden")) {
+                    renderPromoSchedule();
+                }
+            }
         }, 1000);
+
+        /* ==========================================================================
+           TAB SWITCHER & RENDERING JADWAL PROMO
+           ========================================================================== */
+        function switchSidebarTab(tabName) {
+            const btnPlaylist = document.getElementById("tabPlaylist");
+            const btnPromo = document.getElementById("tabPromo");
+            const resultsDiv = document.getElementById("results");
+            const promoDiv = document.getElementById("promoScheduleList");
+            const playlistControls = document.getElementById("playlistControlsContainer");
+
+            if (tabName === 'playlist') {
+                // Style Active Button
+                btnPlaylist.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-suryared-600 text-white shadow-lg shadow-suryared-600/20 flex items-center justify-center gap-1.5";
+                btnPromo.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-white/5 text-gray-400 hover:bg-white/10 flex items-center justify-center gap-1.5 border border-white/5";
+                
+                // Toggle Container
+                resultsDiv.classList.remove("hidden");
+                promoDiv.classList.add("hidden");
+                if (playlistControls) playlistControls.classList.remove("hidden");
+            } else {
+                // Style Active Button
+                btnPromo.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-suryared-600 text-white shadow-lg shadow-suryared-600/20 flex items-center justify-center gap-1.5";
+                btnPlaylist.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-white/5 text-gray-400 hover:bg-white/10 flex items-center justify-center gap-1.5 border border-white/5";
+                
+                // Toggle Container
+                resultsDiv.classList.add("hidden");
+                promoDiv.classList.remove("hidden");
+                if (playlistControls) playlistControls.classList.add("hidden");
+                
+                renderPromoSchedule();
+            }
+        }
+
+        function renderPromoSchedule() {
+            const container = document.getElementById("promoScheduleList");
+            if (!container) return;
+            container.innerHTML = "";
+
+            const now = new Date();
+            const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+            // Hitung mana promo berikutnya untuk diberi lencana khusus 'NEXT'
+            let nextPromoIndex = -1;
+            let minDiff = Infinity;
+
+            jadwalPromo.forEach((p, idx) => {
+                const parts = p.waktu.split(":");
+                const promoMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                
+                let diff = promoMinutes - minutesNow;
+                if (diff <= 0) {
+                    diff += 24 * 60; // next day
+                }
+                
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nextPromoIndex = idx;
+                }
+            });
+
+            // Render daftar promo yang dijadwalkan
+            jadwalPromo.forEach((promo, idx) => {
+                const isNext = (idx === nextPromoIndex);
+                
+                const card = document.createElement("div");
+                card.className = `glass-card p-3 rounded-xl flex items-center justify-between border transition-all duration-200 ${
+                    isNext 
+                    ? 'border-suryared-500/50 bg-suryared-900/10 shadow-lg shadow-suryared-500/5' 
+                    : 'border-white/5 bg-white/5'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 ${
+                            isNext 
+                            ? 'bg-suryared-600 text-white animate-pulse' 
+                            : 'bg-white/5 text-gray-300 border border-white/5'
+                        } orbitron">
+                            ${promo.waktu}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-white line-clamp-1">${promo.audio}</span>
+                            <span class="text-[9px] text-gray-500">Audio Broadcast</span>
+                        </div>
+                    </div>
+                    ${isNext ? `
+                        <span class="text-[9px] bg-suryared-600/20 border border-suryared-600/30 text-suryared-400 font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase flex items-center gap-1 animate-pulse">
+                            <span class="w-1.5 h-1.5 bg-suryared-500 rounded-full"></span> NEXT
+                        </span>
+                    ` : `
+                        <i class="fa-solid fa-music text-gray-600 text-xs mr-1"></i>
+                    `}
+                `;
+                container.appendChild(card);
+            });
+        }
 
         function jalankanPromo(promo) {
             isPromoRunning = true;
