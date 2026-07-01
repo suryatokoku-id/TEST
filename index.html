@@ -51,7 +51,7 @@
         
         /* Glassmorphism Classes */
         .glass-panel {
-            background: rgba(15, 17, 21, 0.4); /* Meningkatkan transparansi bar atas dan bawah */
+            background: rgba(15, 17, 21, 0.4); 
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -163,11 +163,37 @@
         </div>
     </div>
 
+    <!-- MODAL SETTINGS API KEY (Untuk Masalah Kuota API YouTube Habis) -->
+    <div id="apiKeyModal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="bg-[#15171E] border border-white/10 p-6 rounded-2xl w-96 max-w-[90%] shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-key text-suryared-500"></i> API Key YouTube
+            </h3>
+            <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+                Jika kuota pencarian habis atau tidak muncul hasil, masukkan API Key YouTube Anda sendiri di bawah ini untuk menjaga TV tetap online.
+            </p>
+            <input 
+                type="text" 
+                id="apiKeyInput" 
+                class="w-full bg-white/5 border border-white/10 focus:border-suryared-500 rounded-xl py-2.5 px-4 text-sm font-medium text-white placeholder-gray-500 outline-none transition-all mb-4" 
+                placeholder="Masukkan API Key (AIzaSy...)"
+            >
+            <div class="flex justify-end gap-2 text-xs font-bold">
+                <button onclick="closeApiKeyModal()" class="bg-white/5 hover:bg-white/10 text-gray-400 px-4 py-2.5 rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button onclick="saveApiKey()" class="bg-suryared-600 hover:bg-suryared-700 text-white px-4 py-2.5 rounded-lg transition-colors">
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN HEADER -->
     <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0">
         <!-- Logo & Title Info -->
         <div class="flex items-center gap-4">
-            <!-- Penggantian ke Logo Surtok 3D.png dengan Fail-safe Fallback -->
+            <!-- Logo Surtok 3D.png -->
             <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/40 shrink-0">
                 <img src="Logo Surtok 3D.png" alt="Logo Surtok 3D" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://placehold.co/48x48/ef4444/ffffff?text=ST';">
             </div>
@@ -200,10 +226,13 @@
                 <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5 whitespace-nowrap">MINGGU, 28 JUNI 2026</span>
             </div>
 
-            <!-- Sidebar Toggle (Mobile Friendly) & Fullscreen Buttons -->
+            <!-- Sidebar Toggle, API Key, & Fullscreen Buttons -->
             <div class="flex items-center gap-2 pl-4 border-l border-white/10 shrink-0">
                 <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Playlist">
                     <i class="fa-solid fa-list-ul"></i>
+                </button>
+                <button onclick="openApiKeyModal()" class="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-suryared-500 rounded-lg flex items-center justify-center text-white transition-colors" title="Pengaturan API Key YouTube">
+                    <i class="fa-solid fa-key"></i>
                 </button>
                 <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-suryared-500 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Fullscreen (F)">
                     <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
@@ -285,7 +314,7 @@
         <!-- MAIN PLAYER AREA (Fully unobstructed area for beautiful signage) -->
         <section id="playerArea" class="flex-1 bg-black relative flex flex-col justify-between overflow-hidden">
             
-            <!-- YOUTUBE PLAYER WRAPPER (Auto Scales Resolution based on width changes) -->
+            <!-- YOUTUBE PLAYER WRAPPER -->
             <div class="flex-1 w-full h-full relative" id="iframeContainer">
                 <div id="player" class="absolute inset-0 w-full h-full"></div>
                 
@@ -320,7 +349,7 @@
             <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400 font-bold">0 Video</strong></span>
         </div>
 
-        <!-- Middle Side: RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS (Stable Width) -->
+        <!-- Middle Side: RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS -->
         <div class="flex items-center justify-center gap-4 shrink-0 min-w-[340px]">
             <!-- Next Promo Badge -->
             <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400 font-bold shrink-0">
@@ -367,8 +396,8 @@
            KONFIGURASI UTAMA & JADWAL PROMOSI
            ========================================================================== */
         
-        // Backup API Key dari default code Anda
-        const API_KEY = "AIzaSyCQEzM2H5PgmmQND9TN6KcvEI7zBbE1xdM";
+        // Default API Key cadangan
+        const DEFAULT_API_KEY = "AIzaSyCQEzM2H5PgmmQND9TN6KcvEI7zBbE1xdM";
 
         // Jadwal Promosi Audio (Sesuai aslinya)
         const jadwalPromo = [
@@ -432,24 +461,29 @@
         let currentVideoId = "";
         let lastPlayed = "";
         let daftarVideo = [];
-        let originalDaftarVideo = []; // Simpan salinan asli untuk shuffle/unshuffle
+        let originalDaftarVideo = []; 
         let currentIndex = 0;
         let isPromoRunning = false;
         
         // System Options
         let isShuffle = false;
-        let repeatMode = 'all'; // 'all' | 'one' | 'none'
+        let repeatMode = 'all'; 
         let searchHistory = JSON.parse(localStorage.getItem('surtok_search_history')) || ['Suryatokoku', 'Komersial Indonesia', 'Promo Supermarket'];
 
         // SIDEBAR 15-SECOND AUTO HIDE TIMEOUT
         let sidebarTimer;
-        const sidebarDelay = 15000; // 15 Detik
+        const sidebarDelay = 15000; 
         let isSidebarOpen = true;
 
         // Tambahan State untuk Fitur Infinite Scroll Playlist
         let nextPageToken = "";
         let isLoadingMore = false;
         let currentKeyword = "";
+
+        // Fungsi Membaca API Key (Utama atau Kustom)
+        function getApiKey() {
+            return localStorage.getItem('surtok_api_key') || DEFAULT_API_KEY;
+        }
 
         /* ==========================================================================
            INITIALIZATION & YOUTUBE API SETUP
@@ -460,6 +494,7 @@
             renderSearchHistory();
             setupSidebarTimer();
             updatePromoScheduleDisplay();
+            loadSavedPlaylist();
 
             // Pasang event listener enter key pada search input
             const searchInput = document.getElementById("searchInput");
@@ -472,9 +507,9 @@
             // Pasang event scroll pada elemen playlist untuk mendeteksi scroll mendekati dasar (80%)
             const resultsDiv = document.getElementById("results");
             resultsDiv.addEventListener('scroll', () => {
-                if (isPromoRunning) return; // Jangan load data baru saat promosi audio berjalan
+                if (isPromoRunning) return; 
                 
-                const threshold = 0.8; // Trigger infinite load di 80% scroll
+                const threshold = 0.8; 
                 const currentScrollPosition = resultsDiv.scrollTop + resultsDiv.clientHeight;
                 const maxScrollHeight = resultsDiv.scrollHeight;
 
@@ -484,6 +519,24 @@
             });
         });
 
+        // Memulihkan playlist terakhir secara otomatis saat direfresh
+        function loadSavedPlaylist() {
+            const saved = localStorage.getItem('surtok_saved_playlist');
+            if (saved) {
+                try {
+                    daftarVideo = JSON.parse(saved);
+                    originalDaftarVideo = [...daftarVideo];
+                    if (daftarVideo.length > 0) {
+                        tampilkanHasil(daftarVideo);
+                        currentIndex = 0;
+                        loadVideo(daftarVideo[0].id.videoId, false);
+                    }
+                } catch (e) {
+                    console.error("Gagal memuat saved playlist:", e);
+                }
+            }
+        }
+
         function onYouTubeIframeAPIReady() {
             const playerVars = {
                 autoplay: 1,
@@ -492,7 +545,6 @@
                 modestbranding: 1
             };
             
-            // Perbaikan Error 153/150: Kita harus memberikan Video ID default yang aman ('M7lc1UVf-VE') agar API berhasil diinisialisasi
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
@@ -508,28 +560,32 @@
 
         function onPlayerReady(event) {
             playerReady = true;
-            apiStatusText.innerHTML = "API Active";
-            apiIndicator.className = "hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400";
             
-            // Atur Volume Sesuai Slider Default
-            player.setVolume(currentVolume);
+            // Deklarasi Elemen DOM Secara Aman untuk Mencegah Reference Error
+            const apiStatusText = document.getElementById("apiStatusText");
+            const apiIndicator = document.getElementById("apiIndicator");
 
-            // Force pause di awal agar standby screen tetap bersih dan tidak langsung memutar video test
+            if (apiStatusText && apiIndicator) {
+                apiStatusText.innerHTML = "API Active";
+                apiIndicator.className = "hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 shrink-0 min-w-[100px]";
+            }
+            
+            player.setVolume(currentVolume);
             player.pauseVideo();
         }
 
         function onPlayerStateChange(event) {
             const btnIcon = document.getElementById("btnPlayPauseIcon");
             if (event.data === YT.PlayerState.PLAYING) {
-                btnIcon.className = "fa-solid fa-pause text-xs";
+                if (btnIcon) btnIcon.className = "fa-solid fa-pause text-xs";
                 document.getElementById("unselectedState").style.opacity = "0";
                 document.getElementById("unselectedState").style.pointerEvents = "none";
             } 
             else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
-                btnIcon.className = "fa-solid fa-play text-xs";
+                if (btnIcon) btnIcon.className = "fa-solid fa-play text-xs";
             }
             else if (event.data === YT.PlayerState.ENDED) {
-                btnIcon.className = "fa-solid fa-play text-xs";
+                if (btnIcon) btnIcon.className = "fa-solid fa-play text-xs";
                 if (repeatMode === 'one') {
                     player.playVideo();
                 } else {
@@ -553,22 +609,17 @@
                 return;
             }
 
-            // Simpan riwayat pencarian
             addSearchHistory(keyword);
-
             const resultsDiv = document.getElementById("results");
-            
-            // Tampilkan Skeleton Loading Modern
             renderSkeletonLoading(resultsDiv);
 
-            // Reset status token & keyword utama untuk Infinite Scroll halaman berikutnya
             nextPageToken = "";
             currentKeyword = keyword;
             isLoadingMore = false;
 
             try {
-                // maxResults=50 mengambil 50 video pertama di halaman pertama
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(keyword)}&key=${API_KEY}`;
+                const activeKey = getApiKey();
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(keyword)}&key=${activeKey}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -581,16 +632,17 @@
                     return;
                 }
 
-                daftarVideo = data.items;
-                originalDaftarVideo = [...data.items]; // Simpan cadangan playlist asli
-                nextPageToken = data.nextPageToken || ""; // Menyimpan token halaman kedua
+                // Filter data untuk mengamankan hanya format video valid
+                const validItems = data.items.filter(item => item.id && item.id.videoId);
+                
+                daftarVideo = validItems;
+                originalDaftarVideo = [...validItems]; 
+                nextPageToken = data.nextPageToken || ""; 
 
-                // Simpan ke LocalStorage agar tidak hilang saat reload
                 localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
                 
                 tampilkanHasil(daftarVideo);
                 
-                // Play otomatis video pertama pasca pencarian selesai
                 currentIndex = 0;
                 loadVideo(daftarVideo[0].id.videoId, true);
 
@@ -600,14 +652,13 @@
             }
         }
 
-        // Fungsi Load More untuk memuat 50 video berikutnya secara otomatis tanpa overwrite
+        // Fungsi Load More untuk memuat video berikutnya secara otomatis
         async function loadMoreVideos() {
             if (isLoadingMore || !nextPageToken || !currentKeyword) return;
 
             isLoadingMore = true;
             const resultsDiv = document.getElementById("results");
 
-            // Membuat visual element indikator loading di bawah playlist saat scroll
             const loadIndicator = document.createElement("div");
             loadIndicator.id = "infiniteLoadIndicator";
             loadIndicator.className = "text-center py-4 border-t border-white/5 text-xs text-gray-400 mt-2 flex flex-col items-center justify-center gap-2 shrink-0";
@@ -616,14 +667,14 @@
                 <span>Loading video berikutnya...</span>
             `;
             resultsDiv.appendChild(loadIndicator);
-            resultsDiv.scrollTop = resultsDiv.scrollHeight; // Pertahankan posisi scroll di loading indicator
+            resultsDiv.scrollTop = resultsDiv.scrollHeight; 
 
             try {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(currentKeyword)}&key=${API_KEY}&pageToken=${nextPageToken}`;
+                const activeKey = getApiKey();
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(currentKeyword)}&key=${activeKey}&pageToken=${nextPageToken}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
-                // Hapus element loading indicator
                 const existingIndicator = document.getElementById("infiniteLoadIndicator");
                 if (existingIndicator) existingIndicator.remove();
 
@@ -632,47 +683,37 @@
                 }
 
                 if (data.items && data.items.length > 0) {
-                    // Hindari duplikasi video jika terjadi tumpang tindih data API
+                    const validItems = data.items.filter(item => item.id && item.id.videoId);
                     const existingIds = new Set(daftarVideo.map(item => item.id.videoId));
-                    const filteredNewItems = data.items.filter(item => !existingIds.has(item.id.videoId));
+                    const filteredNewItems = validItems.filter(item => !existingIds.has(item.id.videoId));
 
                     if (filteredNewItems.length > 0) {
                         daftarVideo.push(...filteredNewItems);
                         originalDaftarVideo.push(...filteredNewItems);
 
-                        // Update playlist tersimpan
                         localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
 
-                        // Simpan koordinat scroll saat ini untuk menghindari lompatan posisi playlist
                         const currentScrollTop = resultsDiv.scrollTop;
-
-                        // Perbarui render list item
                         tampilkanHasil(daftarVideo);
-
-                        // Kembalikan posisi scroll pengguna
                         resultsDiv.scrollTop = currentScrollTop;
                     }
                 }
 
-                nextPageToken = data.nextPageToken || ""; // Dapatkan token halaman selanjutnya
+                nextPageToken = data.nextPageToken || ""; 
                 isLoadingMore = false;
 
             } catch (err) {
                 console.error("Gagal memuat video berikutnya:", err);
-
-                // Hapus element loading indicator
                 const existingIndicator = document.getElementById("infiniteLoadIndicator");
                 if (existingIndicator) existingIndicator.remove();
 
-                // Munculkan baris error kecil di dasar playlist
                 const errorIndicator = document.createElement("div");
                 errorIndicator.id = "infiniteErrorIndicator";
                 errorIndicator.className = "text-center py-3 bg-suryared-900/20 border border-suryared-500/30 rounded-xl text-xs text-suryared-400 font-semibold mt-2 mx-2 animate-pulse";
-                errorIndicator.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gagal mengambil video berikutnya.`;
+                errorIndicator.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gagal mengambil data berikutnya.`;
                 resultsDiv.appendChild(errorIndicator);
                 resultsDiv.scrollTop = resultsDiv.scrollHeight;
 
-                // Hilangkan banner error secara otomatis setelah 4 detik
                 setTimeout(() => {
                     const existingErr = document.getElementById("infiniteErrorIndicator");
                     if (existingErr) existingErr.remove();
@@ -684,8 +725,6 @@
 
         function tampilkanHasil(items) {
             const resultsDiv = document.getElementById("results");
-            
-            // Hapus isi lama sebelum menulis ulang, tapi tidak memicu flash karena diproses instan
             resultsDiv.innerHTML = "";
             
             document.getElementById("videoCount").textContent = `${items.length} Video`;
@@ -733,7 +772,6 @@
             currentVideoId = videoId;
             if (!playerReady || !player) return;
 
-            // Perbarui UI Aktivitas Card
             const allCards = document.querySelectorAll('.glass-card');
             allCards.forEach(card => card.classList.remove('active'));
             
@@ -759,7 +797,7 @@
             currentIndex++;
             if (currentIndex >= daftarVideo.length) {
                 if (repeatMode === 'all') {
-                    currentIndex = 0; // Mulai lagi dari awal
+                    currentIndex = 0; 
                 } else {
                     return;
                 }
@@ -767,7 +805,7 @@
 
             const nextVideo = daftarVideo[currentIndex];
             loadVideo(nextVideo.id.videoId, true);
-            tampilkanHasil(daftarVideo); // Refresh indicator play
+            tampilkanHasil(daftarVideo); 
         }
 
         function putarVideoSebelumnya() {
@@ -775,12 +813,12 @@
 
             currentIndex--;
             if (currentIndex < 0) {
-                currentIndex = daftarVideo.length - 1; // Ke akhir playlist
+                currentIndex = daftarVideo.length - 1; 
             }
 
             const prevVideo = daftarVideo[currentIndex];
             loadVideo(prevVideo.id.videoId, true);
-            tampilkanHasil(daftarVideo); // Refresh list
+            tampilkanHasil(daftarVideo); 
         }
 
         /* ==========================================================================
@@ -796,29 +834,15 @@
             }
         }
 
-        function toggleMute() {
-            if (!playerReady) return;
-            isMuted = !isMuted;
-            if (isMuted) {
-                player.mute();
-                showToast("Suara Dibungkam", "info");
-            } else {
-                player.unmute();
-                showToast("Suara Aktif", "info");
-            }
-        }
-
         function toggleShuffle() {
             isShuffle = !isShuffle;
             const btn = document.getElementById("btnShuffle");
             if (isShuffle) {
                 btn.classList.add("text-suryared-500");
-                // Acak urutan array
                 daftarVideo = [...daftarVideo].sort(() => Math.random() - 0.5);
                 showToast("Playlist diacak", "success");
             } else {
                 btn.classList.remove("text-suryared-500");
-                // Kembalikan ke susunan asli
                 daftarVideo = [...originalDaftarVideo];
                 showToast("Urutan playlist normal", "info");
             }
@@ -848,9 +872,36 @@
         }
 
         /* ==========================================================================
+           MODAL API KEY MANAGEMENT SYSTEM
+           ========================================================================== */
+        function openApiKeyModal() {
+            const modal = document.getElementById("apiKeyModal");
+            const input = document.getElementById("apiKeyInput");
+            input.value = localStorage.getItem('surtok_api_key') || "";
+            modal.classList.remove("opacity-0", "pointer-events-none");
+        }
+
+        function closeApiKeyModal() {
+            const modal = document.getElementById("apiKeyModal");
+            modal.classList.add("opacity-0", "pointer-events-none");
+        }
+
+        function saveApiKey() {
+            const input = document.getElementById("apiKeyInput").value.trim();
+            if (input) {
+                localStorage.setItem('surtok_api_key', input);
+                showToast("API Key Kustom Berhasil Disimpan!", "success");
+            } else {
+                localStorage.removeItem('surtok_api_key');
+                showToast("Menggunakan API Key Bawaan Sistem.", "info");
+            }
+            closeApiKeyModal();
+            searchYoutube(); // Coba cari ulang menggunakan key baru
+        }
+
+        /* ==========================================================================
            BROADCAST JADWAL PROMOSI AUDIO (CRITICAL CORE ENGINE)
            ========================================================================== */
-        // Jalankan pengecekan jadwal promosi setiap detik
         setInterval(() => {
             const now = new Date();
             const jam = String(now.getHours()).padStart(2, '0');
@@ -866,19 +917,16 @@
                 }
             });
             
-            // Hitung jadwal promo berikutnya untuk ditampilkan di panel bawah
             updatePromoScheduleDisplay();
         }, 1000);
 
         function jalankanPromo(promo) {
             isPromoRunning = true;
             
-            // Jeda Video YouTube
             if (playerReady && player) {
                 player.pauseVideo();
             }
 
-            // Atur Visual Overlay Promosi Fullscreen
             document.getElementById("promoFileName").textContent = promo.audio;
             promoOverlay.style.opacity = "1";
             promoOverlay.style.pointerEvents = "auto";
@@ -891,10 +939,8 @@
                 <span class="text-suryared-500 font-extrabold text-[10px] animate-pulse">🔊 PROMO: ${promo.audio}</span>
             `;
 
-            // Mainkan Promo Audio sesuai file asli
             promoPlayer.src = promo.audio;
             
-            // Mengatasi error autoplays browser
             const playPromise = promoPlayer.play();
             if (playPromise !== undefined) {
                 playPromise.then(_ => {
@@ -904,7 +950,6 @@
                 });
             }
 
-            // Sync Progress Audio Bar
             promoPlayer.ontimeupdate = () => {
                 const percent = (promoPlayer.currentTime / promoPlayer.duration) * 100;
                 document.getElementById("promoProgressBar").style.width = `${percent}%`;
@@ -915,7 +960,6 @@
                 }
             };
 
-            // Pasca Promosi Berakhir
             promoPlayer.onended = () => {
                 selesaiPromo();
             };
@@ -928,7 +972,6 @@
             document.getElementById("promoProgressBar").style.width = "0%";
             document.getElementById("activePromoTrack").innerHTML = `<i class="fa-solid fa-music text-gray-500"></i> No Promo Audio Running`;
             
-            // Lanjutkan kembali pemutaran Video YouTube
             if (playerReady && player) {
                 player.playVideo();
             }
@@ -946,7 +989,6 @@
                 const promoMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
                 
                 let diff = promoMinutes - minutesNow;
-                // Jika jadwal sudah lewat hari ini, hitung untuk esok hari
                 if (diff <= 0) {
                     diff += 24 * 60;
                 }
@@ -964,11 +1006,9 @@
         }
 
         /* ==========================================================================
-           TV AUTO-HIDE & SIDEBAR TIMERS (CLEAN DISPLAY CONFIGURATION)
+           TV AUTO-HIDE & SIDEBAR TIMERS
            ========================================================================== */
-        // SIDEBAR 15s AUTO-HIDE SYSTEM
         function setupSidebarTimer() {
-            // Segala bentuk interaksi pengguna di layar akan langsung memicu sidebar tampil kembali
             document.addEventListener('mousemove', resetSidebarTimer);
             document.addEventListener('mousedown', resetSidebarTimer);
             document.addEventListener('keydown', resetSidebarTimer);
@@ -984,7 +1024,12 @@
         }
 
         function hideSidebar() {
-            if (isPromoRunning) return; // Pertahankan visual jika promo sedang tayang
+            if (isPromoRunning) return; 
+            // Jangan tutup jika kursor input pencarian sedang aktif (sedang mengetik kata kunci)
+            if (document.activeElement === document.getElementById("searchInput")) {
+                resetSidebarTimer();
+                return;
+            }
             const sidebar = document.getElementById("sidebar");
             sidebar.classList.add("w-0", "opacity-0", "pointer-events-none");
             sidebar.classList.remove("w-[380px]", "opacity-100");
@@ -1001,7 +1046,6 @@
         function toggleSidebar() {
             if (isSidebarOpen) {
                 hideSidebar();
-                // Batalkan autotimer agar tidak auto show
                 clearTimeout(sidebarTimer);
             } else {
                 showSidebar();
@@ -1019,12 +1063,14 @@
                 const menit = String(now.getMinutes()).padStart(2, '0');
                 const detik = String(now.getSeconds()).padStart(2, '0');
                 
-                // Formatted date Indonesian
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 const tglString = now.toLocaleDateString('id-ID', options);
 
-                document.getElementById("currentTime").textContent = `${jam}:${menit}:${detik}`;
-                document.getElementById("currentDate").textContent = tglString.toUpperCase();
+                const currentTimeEl = document.getElementById("currentTime");
+                if (currentTimeEl) currentTimeEl.textContent = `${jam}:${menit}:${detik}`;
+
+                const currentDateEl = document.getElementById("currentDate");
+                if (currentDateEl) currentDateEl.textContent = tglString.toUpperCase();
             }, 1000);
 
             // Per pemutaran detik: Perbarui realtime waktu durasi video YouTube di bar bawah dalam format HH:MM:SS
@@ -1033,10 +1079,13 @@
                     try {
                         const current = player.getCurrentTime();
                         const total = player.getDuration();
-                        if (total > 0) {
-                            document.getElementById("videoDurationText").textContent = `${formatTime(current)} / ${formatTime(total)}`;
-                        } else {
-                            document.getElementById("videoDurationText").textContent = `00:00:00 / 00:00:00`;
+                        const durationEl = document.getElementById("videoDurationText");
+                        if (durationEl) {
+                            if (total > 0) {
+                                durationEl.textContent = `${formatTime(current)} / ${formatTime(total)}`;
+                            } else {
+                                durationEl.textContent = `00:00:00 / 00:00:00`;
+                            }
                         }
                     } catch (e) {
                         // Fail-safe
@@ -1048,13 +1097,17 @@
         function initOfflineListeners() {
             const netStatus = document.getElementById("internetStatus");
             window.addEventListener('online', () => {
-                netStatus.textContent = "Online";
-                netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400";
+                if (netStatus) {
+                    netStatus.textContent = "Online";
+                    netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 shrink-0 min-w-[85px]";
+                }
                 showToast("Koneksi Internet Terhubung Kembali", "success");
             });
             window.addEventListener('offline', () => {
-                netStatus.textContent = "Offline";
-                netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-suryared-500/10 border border-suryared-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-suryared-400";
+                if (netStatus) {
+                    netStatus.textContent = "Offline";
+                    netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-suryared-500/10 border border-suryared-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-suryared-400 shrink-0 min-w-[85px]";
+                }
                 showToast("Koneksi Internet Terputus", "error");
             });
         }
@@ -1063,22 +1116,21 @@
             const icon = document.getElementById("fullscreenIcon");
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => {
-                    icon.className = "fa-solid fa-compress";
+                    if (icon) icon.className = "fa-solid fa-compress";
                     showToast("Mode TV Fullscreen diaktifkan", "success");
                 }).catch(err => {
                     showToast("Gagal mengaktifkan mode Fullscreen", "error");
                 });
             } else {
                 document.exitFullscreen();
-                icon.className = "fa-solid fa-expand";
+                if (icon) icon.className = "fa-solid fa-expand";
             }
         }
 
-        // Handle ESC Key exit fullscreen icon sync
         document.addEventListener('fullscreenchange', () => {
             const icon = document.getElementById("fullscreenIcon");
             if (!document.fullscreenElement) {
-                icon.className = "fa-solid fa-expand";
+                if (icon) icon.className = "fa-solid fa-expand";
             }
         });
 
@@ -1086,12 +1138,27 @@
         function addSearchHistory(word) {
             searchHistory = searchHistory.filter(item => item.toLowerCase() !== word.toLowerCase());
             searchHistory.unshift(word);
-            if (searchHistory.length > 5) searchHistory.pop(); // Maks 5 riwayat
+            if (searchHistory.length > 5) searchHistory.pop(); 
             localStorage.setItem('surtok_search_history', JSON.stringify(searchHistory));
             renderSearchHistory();
         }
 
-        // Format waktu robust ke format Jam:Menit:Detik (HH:MM:SS) yang presisi & stabil
+        function renderSearchHistory() {
+            const container = document.getElementById("searchHistory");
+            if (!container) return;
+            container.innerHTML = "";
+            searchHistory.forEach(history => {
+                const badge = document.createElement("button");
+                badge.className = "text-[10px] bg-white/5 hover:bg-suryared-600/30 hover:text-white px-2.5 py-1 rounded-full text-gray-400 font-semibold transition-colors duration-200 border border-white/5 shrink-0";
+                badge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[8px] mr-1"></i> ${history}`;
+                badge.onclick = () => {
+                    document.getElementById("searchInput").value = history;
+                    searchYoutube();
+                };
+                container.appendChild(badge);
+            });
+        }
+
         function formatTime(secs) {
             const h = Math.floor(secs / 3600);
             const m = Math.floor((secs % 3600) / 60);
@@ -1145,7 +1212,8 @@
                 <div class="bg-suryared-900/20 border border-suryared-500/30 p-4 rounded-2xl text-center flex flex-col items-center">
                     <i class="fa-solid fa-circle-exclamation text-3xl text-suryared-500 mb-2"></i>
                     <h4 class="font-bold text-white text-sm mb-1">Peringatan Sistem</h4>
-                    <p class="text-xs text-gray-400 mb-3 leading-relaxed">${errMsg || "Koneksi API YouTube bermasalah atau kuota harian terlampaui."}</p>
+                    <p class="text-xs text-gray-400 mb-3 leading-relaxed">Koneksi API YouTube bermasalah atau kuota harian terlampaui.</p>
+                    <p class="text-[10px] text-gray-500 mb-3">Tekan tombol kunci 🔑 di bar atas untuk memasukkan API Key YouTube mandiri jika masalah berlanjut.</p>
                     <button onclick="searchYoutube()" class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-xs py-2 px-4 rounded-lg transition-colors">
                         <i class="fa-solid fa-arrows-rotate mr-1"></i> Coba Lagi
                     </button>
@@ -1153,9 +1221,7 @@
             `;
         }
 
-        // Custom Toast Notification System (Replacement for standard window alert)
         function showToast(message, type = 'info') {
-            // Hapus toast sebelumnya jika ada
             const existingToast = document.getElementById("systemToast");
             if (existingToast) existingToast.remove();
 
@@ -1184,12 +1250,10 @@
 
             document.body.appendChild(toast);
             
-            // Animate In
             setTimeout(() => {
                 toast.classList.remove("translate-y-4", "opacity-0");
             }, 10);
 
-            // Animate Out
             setTimeout(() => {
                 toast.classList.add("translate-y-4", "opacity-0");
                 setTimeout(() => toast.remove(), 300);
