@@ -1,77 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Scan Barcode Produk</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#f5f5f5;
+padding:20px;
+text-align:center;
+}
+
+h2{
+margin-bottom:20px;
+}
+
+#reader{
+width:100%;
+max-width:420px;
+margin:auto;
+border-radius:12px;
+overflow:hidden;
+}
+
+#hasil{
+margin-top:20px;
+padding:15px;
+background:#fff;
+border-radius:10px;
+font-size:22px;
+font-weight:bold;
+color:#1565c0;
+word-break:break-all;
+}
+
+button{
+margin-top:20px;
+padding:12px 30px;
+font-size:18px;
+border:none;
+border-radius:10px;
+background:#1976d2;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#125ea7;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Scan Barcode Produk</h2>
+
+<div id="reader"></div>
+
+<div id="hasil">
+Belum ada barcode
+</div>
+
+<button onclick="startScanner()">Mulai Scan</button>
+
 <script>
 
-const codeReader = new ZXing.BrowserMultiFormatReader();
+let scanner;
 
-let controls = null;
+async function startScanner(){
 
-async function mulaiScan(){
+    document.getElementById("hasil").innerHTML="Membuka kamera...";
+
+    if(scanner){
+        await scanner.clear().catch(()=>{});
+    }
+
+    scanner = new Html5Qrcode("reader");
 
     try{
 
-        document.getElementById("hasil").innerHTML="Meminta izin kamera...";
+        const cameras = await Html5Qrcode.getCameras();
 
-        // Minta izin kamera terlebih dahulu
-        await navigator.mediaDevices.getUserMedia({
-            video:{
-                facingMode:{ideal:"environment"}
-            }
-        });
-
-        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-
-        if(devices.length===0){
-            alert("Tidak ditemukan kamera.");
+        if(cameras.length===0){
+            alert("Kamera tidak ditemukan");
             return;
         }
 
-        let cameraId = devices[0].deviceId;
+        let cameraId = cameras[0].id;
 
-        // Pilih kamera belakang jika ada
-        devices.forEach(device=>{
+        cameras.forEach(cam=>{
 
-            const label=(device.label||"").toLowerCase();
+            const name=(cam.label||"").toLowerCase();
 
             if(
-                label.includes("back") ||
-                label.includes("rear") ||
-                label.includes("environment")
+                name.includes("back") ||
+                name.includes("rear") ||
+                name.includes("environment")
             ){
-                cameraId=device.deviceId;
+                cameraId=cam.id;
             }
 
         });
 
-        document.getElementById("hasil").innerHTML="Membuka kamera...";
+        await scanner.start(
 
-        controls = await codeReader.decodeFromVideoDevice(
             cameraId,
-            "video",
-            (result,error)=>{
 
-                if(result){
+            {
+                fps:15,
+                qrbox:{
+                    width:260,
+                    height:120
+                },
 
-                    document.getElementById("hasil").innerHTML=result.text;
+                formatsToSupport:[
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.ITF
+                ]
 
-                    navigator.vibrate?.(100);
+            },
 
-                    controls.stop();
+            (decodedText)=>{
 
-                }
+                navigator.vibrate?.(100);
 
-            }
+                document.getElementById("hasil").innerHTML=decodedText;
+
+                scanner.pause();
+
+                setTimeout(()=>{
+
+                    scanner.resume();
+
+                },1200);
+
+            },
+
+            ()=>{}
+
         );
 
-    }catch(err){
+    }
+
+    catch(err){
 
         console.error(err);
 
-        alert(
-            "Gagal membuka kamera.\n\n"+
-            err.message
-        );
+        alert(err);
 
     }
 
 }
 
 </script>
+
+</body>
+</html>
