@@ -490,11 +490,6 @@
         let idleTimer;
         const idleDelay = 5000; // 5 Detik non-aktif, HUD akan disembunyikan di TV
 
-        // Tambahan State untuk Fitur Infinite Scroll Playlist
-        let nextPageToken = "";
-        let isLoadingMore = false;
-        let currentKeyword = "";
-
         /* ==========================================================================
            UI ELEMENTS BINDING
            ========================================================================== */
@@ -514,20 +509,6 @@
             renderSearchHistory();
             setupIdleTimer();
             updatePromoScheduleDisplay();
-
-            // Pasang event scroll pada elemen playlist untuk mendeteksi scroll mendekati dasar (80%)
-            const resultsDiv = document.getElementById("results");
-            resultsDiv.addEventListener('scroll', () => {
-                if (isPromoRunning) return; // Jangan load data baru saat promosi audio berjalan
-                
-                const threshold = 0.8; // Trigger infinite load di 80% scroll
-                const currentScrollPosition = resultsDiv.scrollTop + resultsDiv.clientHeight;
-                const maxScrollHeight = resultsDiv.scrollHeight;
-
-                if (currentScrollPosition >= maxScrollHeight * threshold) {
-                    loadMoreVideos();
-                }
-            });
         });
 
         function onYouTubeIframeAPIReady() {
@@ -538,10 +519,12 @@
                 modestbranding: 1
             };
             
+            // Remove completely the 'origin' parameter injection for sandbox environments to fix Error 153/150 blocks
+
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
-                videoId: '', // Dikosongkan sesuai instruksi agar standby player saat load pertama
+                videoId: '',
                 playerVars: playerVars,
                 events: {
                     onReady: onPlayerReady,
@@ -592,9 +575,11 @@
         function onPlayerError(event) {
             console.error("YouTube Player Error:", event.data);
             
-            // Tampilkan error tanpa berpindah track (no auto-skip)
-            statusHUD.innerHTML = `<span class="text-suryared-500"><i class="fa-solid fa-circle-exclamation mr-1"></i> Gagal (Error ${event.data})</span>`;
-            showToast(`Gagal memutar video ini. Silakan pilih video lain pada playlist.`, "error");
+            // Do not show aggressive toast for Error 153 if we just initialized to avoid spamming the user
+            if (event.data !== 153 || currentIndex > 0) {
+                statusHUD.innerHTML = `<span class="text-suryared-500"><i class="fa-solid fa-circle-exclamation mr-1"></i> Gagal (Error ${event.data})</span>`;
+                showToast(`Gagal memutar video ini. Silakan pilih video lain.`, "error");
+            }
         }
 
         /* ==========================================================================
@@ -615,14 +600,8 @@
             // Tampilkan Skeleton Loading Modern
             renderSkeletonLoading(resultsDiv);
 
-            // Reset status token & keyword utama untuk Infinite Scroll halaman berikutnya
-            nextPageToken = "";
-            currentKeyword = keyword;
-            isLoadingMore = false;
-
             try {
-                // maxResults=50 mengambil 50 video pertama di halaman pertama
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(keyword)}&key=${API_KEY}`;
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=25&q=${encodeURIComponent(keyword)}&key=${API_KEY}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -637,14 +616,13 @@
 
                 daftarVideo = data.items;
                 originalDaftarVideo = [...data.items]; // Simpan cadangan playlist asli
-                nextPageToken = data.nextPageToken || ""; // Menyimpan token halaman kedua
-
+                
                 // Simpan ke LocalStorage agar tidak hilang saat reload
                 localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
                 
                 tampilkanHasil(daftarVideo);
                 
-                // Play otomatis video pertama pasca pencarian selesai
+                // Play otomatis video pertama pasca pencarian
                 currentIndex = 0;
                 loadVideo(daftarVideo[0].id.videoId, true);
 
@@ -654,92 +632,8 @@
             }
         }
 
-        // Fungsi Load More untuk memuat 50 video berikutnya secara otomatis tanpa overwrite
-        async function loadMoreVideos() {
-            if (isLoadingMore || !nextPageToken || !currentKeyword) return;
-
-            isLoadingMore = true;
-            const resultsDiv = document.getElementById("results");
-
-            // Membuat visual element indikator loading di bawah playlist saat scroll
-            const loadIndicator = document.createElement("div");
-            loadIndicator.id = "infiniteLoadIndicator";
-            loadIndicator.className = "text-center py-4 border-t border-white/5 text-xs text-gray-400 mt-2 flex flex-col items-center justify-center gap-2";
-            loadIndicator.innerHTML = `
-                <i class="fa-solid fa-spinner animate-spin text-suryared-500 text-sm"></i>
-                <span>Loading video berikutnya...</span>
-            `;
-            resultsDiv.appendChild(loadIndicator);
-            resultsDiv.scrollTop = resultsDiv.scrollHeight; // Pertahankan posisi scroll di loading indicator
-
-            try {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(currentKeyword)}&key=${API_KEY}&pageToken=${nextPageToken}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                // Hapus element loading indicator
-                const existingIndicator = document.getElementById("infiniteLoadIndicator");
-                if (existingIndicator) existingIndicator.remove();
-
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-
-                if (data.items && data.items.length > 0) {
-                    // Hindari duplikasi video jika terjadi tumpang tindih data API
-                    const existingIds = new Set(daftarVideo.map(item => item.id.videoId));
-                    const filteredNewItems = data.items.filter(item => !existingIds.has(item.id.videoId));
-
-                    if (filteredNewItems.length > 0) {
-                        daftarVideo.push(...filteredNewItems);
-                        originalDaftarVideo.push(...filteredNewItems);
-
-                        // Update playlist tersimpan
-                        localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
-
-                        // Simpan koordinat scroll saat ini untuk menghindari lompatan posisi playlist
-                        const currentScrollTop = resultsDiv.scrollTop;
-
-                        // Perbarui render list item
-                        tampilkanHasil(daftarVideo);
-
-                        // Kembalikan posisi scroll pengguna
-                        resultsDiv.scrollTop = currentScrollTop;
-                    }
-                }
-
-                nextPageToken = data.nextPageToken || ""; // Dapatkan token halaman selanjutnya
-                isLoadingMore = false;
-
-            } catch (err) {
-                console.error("Gagal memuat video berikutnya:", err);
-
-                // Hapus element loading indicator
-                const existingIndicator = document.getElementById("infiniteLoadIndicator");
-                if (existingIndicator) existingIndicator.remove();
-
-                // Munculkan baris error kecil di dasar playlist
-                const errorIndicator = document.createElement("div");
-                errorIndicator.id = "infiniteErrorIndicator";
-                errorIndicator.className = "text-center py-3 bg-suryared-900/20 border border-suryared-500/30 rounded-xl text-xs text-suryared-400 font-semibold mt-2 mx-2 animate-pulse";
-                errorIndicator.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gagal mengambil video berikutnya.`;
-                resultsDiv.appendChild(errorIndicator);
-                resultsDiv.scrollTop = resultsDiv.scrollHeight;
-
-                // Hilangkan banner error secara otomatis setelah 4 detik
-                setTimeout(() => {
-                    const existingErr = document.getElementById("infiniteErrorIndicator");
-                    if (existingErr) existingErr.remove();
-                }, 4000);
-
-                isLoadingMore = false;
-            }
-        }
-
         function tampilkanHasil(items) {
             const resultsDiv = document.getElementById("results");
-            
-            // Hapus isi lama sebelum menulis ulang, tapi tidak memicu flash karena diproses instan
             resultsDiv.innerHTML = "";
             
             document.getElementById("videoCount").textContent = `${items.length} Video`;
@@ -781,6 +675,8 @@
 
                 resultsDiv.appendChild(card);
             });
+            
+            scrollToActiveVideo();
         }
 
         function loadVideo(videoId, playNow = true) {
@@ -972,7 +868,7 @@
                 <span class="text-suryared-500 font-extrabold text-[10px] animate-pulse">🔊 SEDANG PROMO: ${promo.audio}</span>
             `;
 
-            // Mainkan Promo Audio sesuai file asli
+            // Mainkan Promo Audio
             promoPlayer.src = promo.audio;
             
             // Mengatasi error autoplays browser
@@ -1009,7 +905,7 @@
             document.getElementById("promoProgressBar").style.width = "0%";
             document.getElementById("activePromoTrack").innerHTML = `<i class="fa-solid fa-music text-gray-500"></i> No Promo Audio Running`;
             
-            // Lanjutkan kembali pemutaran Video YouTube
+            // Resume/Lanjutkan Video YouTube
             if (playerReady && player) {
                 player.playVideo();
             }
@@ -1196,6 +1092,18 @@
                 };
                 container.appendChild(badge);
             });
+        }
+
+        // Cache persistent playlist
+        function loadStoredPlaylist() {
+            const saved = localStorage.getItem('surtok_saved_playlist');
+            if (saved) {
+                daftarVideo = JSON.parse(saved);
+                originalDaftarVideo = [...daftarVideo];
+                setTimeout(() => {
+                    tampilkanHasil(daftarVideo);
+                }, 1000);
+            }
         }
 
         function formatTime(secs) {
