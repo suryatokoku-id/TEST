@@ -1,822 +1,116 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suryatokoku — Portal Cek Harga Modern</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Plus Jakarta Sans -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- html5-qrcode -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        
-        /* Laser scanning animation inside the target box */
-        @keyframes scanner-laser {
-            0% { top: 10%; }
-            50% { top: 90%; }
-            100% { top: 10%; }
-        }
-        .animate-scanner-laser {
-            animation: scanner-laser 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        /* Reset style bawaan html5-qrcode */
-        #reader {
-            border: none !important;
-            background: #000 !important;
-        }
-        /* PENTING: Menggunakan 'contain' agar tidak ada gambar kamera yang terpotong di iPhone */
-        #reader video {
-            border-radius: 1.25rem !important;
-            object-fit: contain !important;
-            width: 100% !important;
-            height: auto !important;
-            max-height: 350px !important;
-        }
-    </style>
-    <script>
-        // Fungsi aman untuk menangani error pemuatan gambar tanpa merusak atribut HTML
-        function handleLogoError(img, type) {
-            img.onerror = null; // Menghindari loop tak terbatas jika SVG pun bermasalah
-            if (type === 'splash') {
-                img.outerHTML = `
-                    <div class="bg-gradient-to-tr from-[#ff4fa3] to-[#d93a83] text-white p-6 rounded-3xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                    </div>
-                `;
-            } else if (type === 'header') {
-                img.outerHTML = `
-                    <div class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                    </div>
-                `;
-            }
-        }
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan Barcode Produk</title>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f5f5f5;
+    text-align:center;
+}
+
+h2{
+    margin:20px 0;
+}
+
+#video{
+    width:95%;
+    max-width:500px;
+    border-radius:12px;
+    background:#000;
+}
+
+#hasil{
+    margin-top:20px;
+    font-size:22px;
+    font-weight:bold;
+    color:#1565c0;
+}
+
+button{
+    margin:15px;
+    padding:12px 24px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#1976d2;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#125ea7;
+}
+</style>
+
 </head>
-<body class="text-slate-800 min-h-screen pb-16 bg-[#fafbfc]">
 
-    <!-- PREMIUM SPLASH LOADING SCREEN -->
-    <div id="splash-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
-        <div class="relative flex flex-col items-center text-center px-6 max-w-sm">
-            <!-- Pulsing Elegant Ring -->
-            <div class="absolute w-36 h-36 bg-pink-100/60 rounded-full animate-ping"></div>
-            
-            <!-- Modern Store Logo Container -->
-            <div class="relative mb-6">
-                <img src="Logo%20Surtok%203D.png" class="h-20 w-20 object-contain" onerror="handleLogoError(this, 'splash')">
-            </div>
-            
-            <!-- Brand & Status Loading Text -->
-            <h2 class="text-slate-900 text-2xl font-extrabold tracking-tight mb-2">SURYATOKOKU</h2>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-[11px] font-semibold text-slate-500 mb-6">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#ff4fa3] animate-pulse"></span>
-                <span>Sinkronisasi Data Produk...</span>
-            </div>
-            <p id="splash-status" class="text-slate-400 text-xs font-medium">Menghubungkan ke database pusat secara aman</p>
-        </div>
-    </div>
+<body>
 
-    <!-- MAIN APP CONTAINER -->
-    <div class="max-w-md mx-auto px-4 pt-6">
-        
-        <!-- HEADER BRAND -->
-        <header class="bg-gradient-to-r from-[#ff4fa3] to-[#e03a89] rounded-3xl p-6 text-white shadow-xl shadow-pink-500/10 mb-5 relative overflow-hidden">
-            <!-- Decorative blur background items -->
-            <div class="absolute -right-12 -bottom-12 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-            <div class="absolute -left-6 -top-6 w-24 h-24 bg-pink-300/20 rounded-full blur-lg"></div>
-            
-            <div class="relative z-10 flex flex-col items-center text-center">
-                <div class="mb-3">
-                    <img src="Logo%20Surtok%203D.png" class="h-12 w-12 object-contain" onerror="handleLogoError(this, 'header')">
-                </div>
-                
-                <h1 class="text-[10px] font-bold uppercase tracking-wider text-pink-100 mb-0.5">Sistem Cek Harga</h1>
-                <h2 class="text-2xl font-extrabold tracking-tight">SURYATOKOKU</h2>
-                
-                <!-- Status Badge -->
-                <div id="db-status" class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[11px] font-medium backdrop-blur-md border border-white/10">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span>Menghubungkan database...</span>
-                </div>
-            </div>
-        </header>
+<h2>Scan Barcode Produk</h2>
 
-        <!-- SEARCH CONTAINER -->
-        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-5">
-            <div class="space-y-3">
-                <!-- 1. OPTIONAL PREFIX SEARCH (AWAL NAMA SAJA) -->
-                <div class="relative">
-                    <input id="start-name" type="text" placeholder="Isi nama produk dari awal (opsional)..." 
-                        class="w-full pl-11 pr-11 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-[#ff4fa3] focus:bg-white text-xs font-semibold transition-all placeholder-slate-400">
-                    
-                    <!-- Alphabet Prefix Icon -->
-                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                        </svg>
-                    </div>
+<video id="video"></video>
 
-                    <!-- Clear Button -->
-                    <button id="clear-start-btn" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 hidden transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                </div>
+<div id="hasil">
+Belum ada barcode
+</div>
 
-                <!-- 2. MAIN SEARCH INPUT -->
-                <div class="relative">
-                    <input id="keyword" type="text" placeholder="Isi nama produk / kode item / barcode" 
-                        class="w-full pl-11 pr-24 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-[#ff4fa3] focus:bg-white text-sm font-medium transition-all placeholder-slate-400">
-                    
-                    <!-- Search Icon Left -->
-                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
+<button onclick="mulaiScan()">Mulai Scan</button>
 
-                    <!-- Right Controls: Voice, Clear -->
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        <!-- Clear Button -->
-                        <button id="clear-btn" class="text-slate-400 hover:text-slate-700 hidden p-1 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <!-- Voice Search Button -->
-                        <button id="voice-btn" onclick="startVoiceSearch()" class="text-[#ff4fa3] hover:bg-pink-50 p-1.5 rounded-lg transition-all" title="Cari dengan Suara">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+<script>
 
-            <!-- Scanner Button Primary -->
-            <button onclick="startScanner()" class="mt-4 w-full bg-slate-900 hover:bg-slate-850 text-white font-bold text-sm py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-slate-900/5 active:scale-[0.99]">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-                <span>SCAN PRODUK DENGAN KAMERA</span>
-            </button>
-        </div>
+const codeReader = new ZXing.BrowserMultiFormatReader();
 
-        <!-- CAMERA SCANNER VIEWPORT MODAL-LIKE -->
-        <div id="scanner-wrapper" class="hidden bg-slate-950 rounded-3xl p-4 mb-5 relative overflow-hidden border border-slate-800 shadow-inner">
-            <div class="flex items-center justify-between mb-3 text-white">
-                <span class="text-xs font-semibold tracking-wider text-emerald-400 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                    Kamera Aktif
-                </span>
-                
-                <div class="flex items-center gap-2">
-                    <!-- PENTING: Tombol Ganti Kamera untuk Mengatasi Lensa 0.5x Buram di iPhone -->
-                    <button id="switch-camera-btn" onclick="switchCamera()" class="hidden text-xs bg-white/10 hover:bg-white/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl font-bold transition-all">
-                        Putar Lensa 🔄
-                    </button>
-                    <button onclick="stopScanner()" class="text-xs bg-white/10 hover:bg-red-500 text-slate-200 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
-                        Tutup
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Beautiful Frame Container -->
-            <div class="relative rounded-2xl bg-black border border-slate-800 p-0.5 overflow-hidden min-h-[220px] flex items-center justify-center">
-                <div id="reader" class="w-full"></div>
-                
-                <!-- Target/Scanner Overlay (iOS Style) -->
-                <div id="scanner-overlay" class="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center hidden">
-                    <!-- Top semi-transparent mask -->
-                    <div class="w-full flex-1 bg-black/70"></div>
-                    
-                    <!-- Scanner cutout container (DIOPTIMALKAN TIPIS UNTUK BARCODE 1D) -->
-                    <div class="w-full flex h-[100px] items-center justify-between">
-                        <div class="h-full flex-1 bg-black/70"></div>
-                        <div class="w-[88%] h-full relative border border-emerald-400 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.3)] bg-black/10">
-                            <!-- Laser animation inside box -->
-                            <div class="absolute w-full h-[2px] bg-emerald-400 top-0 left-0 animate-scanner-laser"></div>
-                            
-                            <!-- Red Alignment Line (PENTING: Garis merah lurus untuk membantu fokus barcode 1D) -->
-                            <div class="absolute w-full h-[1.5px] bg-red-500/80 shadow-[0_0_4px_#ef4444] top-1/2 left-0 -translate-y-1/2"></div>
-                            
-                            <!-- Corner brackets -->
-                            <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-emerald-400 rounded-tl-sm"></div>
-                            <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-emerald-400 rounded-tr-sm"></div>
-                            <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl-sm"></div>
-                            <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-emerald-400 rounded-br-sm"></div>
-                        </div>
-                        <div class="h-full flex-1 bg-black/70"></div>
-                    </div>
-                    
-                    <!-- Bottom semi-transparent mask -->
-                    <div class="w-full flex-1 bg-black/70 flex flex-col items-center justify-start pt-4 gap-2">
-                        <span class="text-[10px] font-bold text-white bg-emerald-500/95 px-3 py-1 rounded-full shadow-sm tracking-wide animate-pulse">
-                            Arahkan Garis Merah ke Tengah Barcode
-                        </span>
-                        
-                        <!-- TIPS KHUSUS UNTUK MEMBANTU LIMITASI SAFARI IPHONE -->
-                        <div class="bg-black/40 border border-white/10 rounded-xl p-2.5 max-w-[90%] text-center mt-2">
-                            <p class="text-[10px] font-bold text-amber-300 mb-0.5">⚠️ TIPS SCANNING IPHONE (SAFARI):</p>
-                            <p class="text-[9px] text-slate-200 leading-relaxed">
-                                Jangan terlalu dekat! Jauhkan HP sekitar <span class="font-bold text-white">15 - 20 cm</span> dari barcode agar kamera dapat fokus otomatis. Jika buram, ketuk tombol <span class="font-bold text-emerald-400">"Putar Lensa 🔄"</span> untuk pindah ke lensa kamera utama yang tajam.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <p class="text-[11px] text-slate-400 text-center mt-2.5">Posisikan barcode produk horizontal sejajar garis merah</p>
-        </div>
+async function mulaiScan(){
 
-        <!-- RESULTS LIST -->
-        <main id="hasil" class="space-y-3.5"></main>
-    </div>
+document.getElementById("hasil").innerHTML="Membuka kamera...";
 
-    <!-- NEW TOP FLOATING TOAST NOTIFICATION (iOS/Android Style) -->
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white/95 backdrop-blur-md border border-slate-100/80 px-4.5 py-3 rounded-2xl shadow-xl shadow-slate-200/50 transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none max-w-sm w-[90%]">
-        <div id="toast-icon-wrapper" class="p-2 rounded-xl text-sm flex items-center justify-center"></div>
-        <div class="flex-1">
-            <p id="toast-title" class="text-xs font-bold text-slate-900"></p>
-            <p id="toast-message" class="text-[11px] text-slate-500 font-medium"></p>
-        </div>
-    </div>
+const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbw0g2jFI8AD3UfthUcqubE7wCaOdPhyeuJ1tt5J-rrlODUKy2hplh_3vVnxfI3Jtt3p/exec";
-        
-        let currentProducts = [];
-        let allProducts = [];
-        let qr = null;
-        
-        // State Manajemen Kamera untuk iPhone/Multi-kamera
-        let availableCameras = [];
-        let activeCameraIndex = 0;
+let cameraId = devices[0].deviceId;
 
-        // INDEXEDDB CONFIGURATION FOR INSTANT LOADING
-        const DB_NAME = "SuryatokokuLocalDB";
-        const STORE_NAME = "product_cache";
+for(const d of devices){
 
-        const startNameInput = document.getElementById("start-name");
-        const clearStartBtn = document.getElementById("clear-start-btn");
-        const keywordInput = document.getElementById("keyword");
-        const clearBtn = document.getElementById("clear-btn");
-        const hasilDiv = document.getElementById("hasil");
-        const dbStatus = document.getElementById("db-status");
-        const splashScreen = document.getElementById("splash-screen");
-        const splashStatus = document.getElementById("splash-status");
+const nama=d.label.toLowerCase();
 
-        // Event listener for starts-with search
-        startNameInput.addEventListener("input", () => {
-            if (startNameInput.value.length > 0) {
-                clearStartBtn.classList.remove("hidden");
-            } else {
-                clearStartBtn.classList.add("hidden");
-            }
-            cariProduk();
-        });
+if(
+nama.includes("back")||
+nama.includes("rear")||
+nama.includes("environment")
+){
+cameraId=d.deviceId;
+}
 
-        clearStartBtn.addEventListener("click", () => {
-            startNameInput.value = "";
-            clearStartBtn.classList.add("hidden");
-            cariProduk();
-            startNameInput.focus();
-        });
+}
 
-        // Event listener for main search
-        keywordInput.addEventListener("input", () => {
-            if (keywordInput.value.length > 0) {
-                clearBtn.classList.remove("hidden");
-            } else {
-                clearBtn.classList.add("hidden");
-            }
-            cariProduk();
-        });
+codeReader.decodeFromVideoDevice(
+cameraId,
+'video',
+(result,err)=>{
 
-        clearBtn.addEventListener("click", () => {
-            keywordInput.value = "";
-            clearBtn.classList.add("hidden");
-            cariProduk();
-            keywordInput.focus();
-        });
+if(result){
 
-        window.onload = loadData;
+document.getElementById("hasil").innerHTML=result.text;
 
-        // Modern top-slide toast notification system
-        function showToast(title, message, type = 'info') {
-            const toast = document.getElementById("toast");
-            const iconWrapper = document.getElementById("toast-icon-wrapper");
-            const titleElem = document.getElementById("toast-title");
-            const msgElem = document.getElementById("toast-message");
+navigator.vibrate?.(150);
 
-            titleElem.innerText = title;
-            msgElem.innerText = message;
+codeReader.reset();
 
-            // Icon configuration based on status
-            if (type === 'success') {
-                iconWrapper.className = "p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100";
-                iconWrapper.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                `;
-            } else if (type === 'error') {
-                iconWrapper.className = "p-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-100";
-                iconWrapper.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                `;
-            } else {
-                iconWrapper.className = "p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100";
-                iconWrapper.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                `;
-            }
+}
 
-            // Animate In (iOS style slide-down)
-            toast.classList.remove("-translate-y-24", "opacity-0");
-            toast.classList.add("translate-y-0", "opacity-100");
+}
 
-            setTimeout(() => {
-                // Animate Out
-                toast.classList.add("-translate-y-24", "opacity-0");
-                toast.classList.remove("translate-y-0", "opacity-100");
-            }, 3000);
-        }
+);
 
-        // --- INDEXEDDB HELPER FUNCTIONS ---
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
-                    }
-                };
-                request.onsuccess = (e) => resolve(e.target.result);
-                request.onerror = (e) => reject(e.target.error);
-            });
-        }
+}
 
-        async function getCachedProducts() {
-            try {
-                const db = await initDB();
-                return new Promise((resolve, reject) => {
-                    const transaction = db.transaction(STORE_NAME, "readonly");
-                    const store = transaction.objectStore(STORE_NAME);
-                    const request = store.get("all_products");
-                    request.onsuccess = () => resolve(request.result || null);
-                    request.onerror = () => reject(request.error);
-                });
-            } catch (e) {
-                console.error("Gagal memuat cache lokal:", e);
-                return null;
-            }
-        }
+</script>
 
-        async function saveProductsToCache(data) {
-            try {
-                const db = await initDB();
-                return new Promise((resolve, reject) => {
-                    const transaction = db.transaction(STORE_NAME, "readwrite");
-                    const store = transaction.objectStore(STORE_NAME);
-                    const request = store.put(data, "all_products");
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-            } catch (e) {
-                console.error("Gagal menyimpan cache baru:", e);
-            }
-        }
-
-        // --- MAIN DATA LOADING LOGIC (STALE-WHILE-REVALIDATE) ---
-        async function loadData() {
-            try {
-                splashStatus.innerText = "Memeriksa basis data lokal...";
-                
-                // Ambil data dari penyimpanan lokal (IndexedDB)
-                const cachedData = await getCachedProducts();
-
-                if (cachedData && cachedData.length > 0) {
-                    // JIKA ADA CACHE: Langsung tampilkan database lokal agar instan
-                    allProducts = cachedData;
-                    
-                    dbStatus.innerHTML = `
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#ff4fa3] animate-pulse"></span>
-                        <span>Mode Lokal: ${allProducts.length.toLocaleString("id-ID")} Produk</span>
-                    `;
-
-                    // Tutup splash screen seketika
-                    splashScreen.classList.add("opacity-0", "pointer-events-none");
-                    setTimeout(() => {
-                        splashScreen.classList.add("hidden");
-                    }, 500);
-
-                    // Sinkronisasi data terbaru di latar belakang
-                    fetchFreshData(true);
-                } else {
-                    // JIKA TIDAK ADA CACHE: Unduh penuh database di awal
-                    splashStatus.innerText = "Memuat database awal (Mohon ditunggu...)";
-                    await fetchFreshData(false);
-                }
-            } catch (err) {
-                console.error(err);
-                await fetchFreshData(false);
-            }
-        }
-
-        // Mengunduh database terbaru online
-        async function fetchFreshData(isBackground = false) {
-            try {
-                const res = await fetch(API_URL + "?action=load");
-                const json = await res.json();
-                const freshProducts = json.data || [];
-
-                if (freshProducts.length > 0) {
-                    allProducts = freshProducts;
-                    await saveProductsToCache(freshProducts);
-                }
-
-                // Update status badge menjadi Hijau Aktif
-                dbStatus.innerHTML = `
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                    <span>Database Sinkron: ${allProducts.length.toLocaleString("id-ID")} Produk</span>
-                `;
-
-                if (!isBackground) {
-                    splashScreen.classList.add("opacity-0", "pointer-events-none");
-                    setTimeout(() => {
-                        splashScreen.classList.add("hidden");
-                    }, 500);
-                    showToast("Selesai", `${allProducts.length.toLocaleString("id-ID")} produk berhasil disinkronkan`, 'success');
-                } else {
-                    showToast("Sinkronisasi Selesai", "Database produk berhasil diperbarui di latar belakang", "success");
-                }
-            } catch (err) {
-                console.error("Gagal melakukan sinkronisasi database:", err);
-                
-                if (!isBackground) {
-                    dbStatus.innerHTML = `
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                        <span>Gagal Terhubung ke Database</span>
-                    `;
-
-                    splashScreen.classList.add("opacity-0", "pointer-events-none");
-                    setTimeout(() => {
-                        splashScreen.classList.add("hidden");
-                    }, 500);
-
-                    hasilDiv.innerHTML = `
-                        <div class="bg-rose-50 border border-rose-100 rounded-3xl p-6 text-center shadow-sm">
-                            <div class="font-bold text-slate-900 text-sm mb-1">Gagal Sinkronisasi Pertama</div>
-                            <p class="text-xs text-rose-600 mb-3">Pastikan koneksi internet stabil lalu ketuk muat ulang.</p>
-                            <button onclick="location.reload()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-850 text-white rounded-xl text-xs font-bold transition-all shadow-sm">Muat Ulang</button>
-                        </div>
-                    `;
-                    showToast("Gagal Sinkronisasi", "Gagal memuat basis data online utama", "error");
-                } else {
-                    dbStatus.innerHTML = `
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                        <span>Offline: ${allProducts.length.toLocaleString("id-ID")} Produk</span>
-                    `;
-                    showToast("Mode Offline", "Menggunakan basis data lokal (Offline)", "info");
-                }
-            }
-        }
-
-        function cariProduk() {
-            const startName = startNameInput.value.trim().toLowerCase();
-            const keyword = keywordInput.value.trim().toLowerCase();
-
-            // Jika kedua kolom pencarian kosong, bersihkan daftar
-            if (!startName && !keyword) {
-                hasilDiv.innerHTML = "";
-                return;
-            }
-
-            currentProducts = allProducts.filter(item => {
-                // 1. Filter awal nama (jika kolom diisi)
-                let matchesStartName = true;
-                if (startName) {
-                    matchesStartName = String(item.nama || "").toLowerCase().startsWith(startName);
-                }
-
-                // 2. Filter kata kunci bebas (jika kolom diisi)
-                let matchesKeyword = true;
-                if (keyword) {
-                    matchesKeyword = String(item.barcode || "").toLowerCase().includes(keyword) ||
-                                     String(item.kode || "").toLowerCase().includes(keyword) ||
-                                     String(item.nama || "").toLowerCase().includes(keyword);
-                }
-
-                return matchesStartName && matchesKeyword;
-            });
-
-            tampilkanProduk();
-        }
-
-        function tampilkanProduk() {
-            if (currentProducts.length === 0) {
-                hasilDiv.innerHTML = `
-                    <div class="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-sm">
-                        <div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-sm">Produk Tidak Ditemukan</h3>
-                        <p class="text-xs text-slate-450 mt-1">Gunakan kata pencarian lain atau pastikan barcode sudah sesuai.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = "";
-            currentProducts.slice(0, 20).forEach(item => {
-                html += `
-                    <div class="bg-white rounded-2xl p-4 border border-slate-100/80 shadow-sm hover:shadow-md transition-all duration-300">
-                        <!-- Top Metadata & Title -->
-                        <div class="flex flex-col gap-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-md">
-                                    KODE: ${item.kode || '-'}
-                                </span>
-                                ${item.barcode ? `
-                                    <span class="text-[9px] font-bold px-2.5 py-0.5 bg-pink-50 text-[#ff4fa3] rounded-md flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M6 20a1 1 0 001-1v-4.586a1 1 0 01.293-.707l7-7a1 1 0 00-1.414-1.414l-7 7a1 1 0 00-.293.707V19a1 1 0 001 1z" />
-                                        </svg>
-                                        ${item.barcode}
-                                    </span>
-                                ` : ''}
-                            </div>
-                            <h3 class="font-extrabold text-slate-800 text-[14px] leading-tight tracking-tight mt-1">${item.nama}</h3>
-                        </div>
-
-                        <!-- Price Section (Tidy 3-Column Dashboard Layout) -->
-                        <div class="grid grid-cols-3 gap-1.5 mt-3">
-                            <!-- Non Member -->
-                            <div class="bg-slate-50/70 p-2.5 rounded-xl border border-slate-100/50 text-center">
-                                <span class="block text-[8px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Non-Member</span>
-                                <span class="block text-xs md:text-sm font-extrabold text-slate-700">Rp ${rupiah(item.non)}</span>
-                            </div>
-
-                            <!-- Member Ecer -->
-                            <div class="bg-pink-50/20 p-2.5 rounded-xl border border-pink-100/30 text-center">
-                                <span class="block text-[8px] font-extrabold text-[#ff4fa3] uppercase tracking-widest mb-1">Ecer</span>
-                                <span class="block text-xs md:text-sm font-black text-[#ff4fa3]">Rp ${rupiah(item.ecer)}</span>
-                            </div>
-
-                            <!-- Member Grosir -->
-                            <div class="bg-indigo-50/20 p-2.5 rounded-xl border border-indigo-100/30 text-center">
-                                <span class="block text-[8px] font-extrabold text-indigo-500 uppercase tracking-widest mb-1">Grosir</span>
-                                <span class="block text-xs md:text-sm font-black text-indigo-700">Rp ${rupiah(item.grosir)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            hasilDiv.innerHTML = html;
-        }
-
-        function rupiah(x) {
-            return Number(x || 0).toLocaleString("id-ID");
-        }
-
-        // --- FEATURE: AI VOICE SEARCH & RECOGNITION ---
-        function startVoiceSearch() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!SpeechRecognition) {
-                showToast("Kesalahan", "Peramban Anda tidak mendukung penelusuran suara.", "error");
-                return;
-            }
-
-            const recognition = new SpeechRecognition();
-            recognition.lang = "id-ID"; // Set Bahasa Indonesia
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            const voiceBtn = document.getElementById("voice-btn");
-            voiceBtn.classList.add("animate-pulse", "bg-pink-100");
-            showToast("Mendengarkan", "Silakan sebutkan nama produk secara jelas...", "info");
-
-            recognition.start();
-
-            recognition.onresult = (event) => {
-                const speechResult = event.results[0][0].transcript;
-                keywordInput.value = speechResult;
-                clearBtn.classList.remove("hidden");
-                cariProduk();
-                showToast("Pencarian Suara", `Mencari untuk: "${speechResult}"`, "success");
-            };
-
-            recognition.onspeechend = () => {
-                recognition.stop();
-                voiceBtn.classList.remove("animate-pulse", "bg-pink-100");
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Voice recognition error:", event.error);
-                voiceBtn.classList.remove("animate-pulse", "bg-pink-100");
-                showToast("Kesalahan Mikrofon", "Gagal mendeteksi suara Anda. Silakan coba lagi.", "error");
-            };
-        }
-
-        // --- SISTEM PEMINDAIAN KAMERA MUTAKHIR UNTUK IPHONE ---
-        async function startScanner() {
-            if (qr) {
-                stopScanner();
-                return;
-            }
-
-            const wrapper = document.getElementById("scanner-wrapper");
-            const overlay = document.getElementById("scanner-overlay");
-            const switchBtn = document.getElementById("switch-camera-btn");
-            
-            wrapper.classList.remove("hidden");
-            if (overlay) overlay.classList.remove("hidden");
-            document.getElementById("reader").innerHTML = "";
-
-            // MEMBATASI FORMAT SCANNER AGAR SANGAT SENSITIF TERHADAP BARCODE BARANG RETAIL
-            let formats = [];
-            if (typeof Html5QrcodeSupportedFormats !== "undefined") {
-                formats = [
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.QR_CODE
-                ];
-            }
-
-            // Inisialisasi engine scanner dengan menyalakan native Barcode Detector milik iOS Safari (jika didukung)
-            qr = new Html5Qrcode("reader", { 
-                formatsToSupport: formats,
-                verbose: false,
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true // Fitur akselerasi scanning perangkat keras di iOS Safari
-                }
-            });
-
-            try {
-                // DETEKSI DAFTAR KAMERA PERANGKAT SECARA NYATA
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length > 0) {
-                    // Filter kamera belakang saja
-                    availableCameras = devices.filter(cam => {
-                        const label = cam.label.toLowerCase();
-                        // Hindari kamera depan & prioritaskan kamera belakang (back/rear)
-                        return !label.includes("front") && !label.includes("selfie");
-                    });
-
-                    // Jika tidak ada kamera yang ter-filter spesifik belakang, pakai semua perangkat kamera
-                    if (availableCameras.length === 0) {
-                        availableCameras = devices;
-                    }
-
-                    // Urutkan kamera agar kamera utama (biasanya berindeks pertama/terakhir) dicoba lebih dulu
-                    // Kita akan membalik urutannya karena pada iPhone lensa utama biasanya berada di indeks terakhir list WebRTC
-                    availableCameras.reverse();
-
-                    if (availableCameras.length > 1) {
-                        switchBtn.classList.remove("hidden"); // Tampilkan tombol ganti kamera jika lebih dari 1 kamera belakang terdeteksi
-                    } else {
-                        switchBtn.classList.add("hidden");
-                    }
-
-                    activeCameraIndex = 0;
-                    await runScannerOnDevice(availableCameras[activeCameraIndex].id);
-                } else {
-                    // Fallback jika daftar kamera tidak bisa didapatkan
-                    await runScannerOnDevice({ facingMode: "environment" });
-                }
-            } catch (err) {
-                console.error("Gagal mendeteksi kamera:", err);
-                // Fallback langsung menggunakan facingMode standard
-                try {
-                    await runScannerOnDevice({ facingMode: "environment" });
-                } catch (fallbackErr) {
-                    showToast("Kamera Gagal", "Pastikan situs diakses via HTTPS dan izin kamera aktif.", "error");
-                    stopScanner();
-                }
-            }
-        }
-
-        // Fungsi internal untuk menyalakan kamera menggunakan ID perangkat spesifik
-        async function runScannerOnDevice(cameraIdentifier) {
-            if (!qr) return;
-
-            const config = {
-                fps: 25, // 25 FPS membuat pergerakan video mulus dan memudahkan ZXing menangkap gambar fokus
-                qrbox: (width, height) => {
-                    // DIBUAT JAUH LEBIH MELEBAR DAN TIPIS (0.90x lebar, 0.22x tinggi)
-                    // Sangat ideal untuk struktur barcode produk yang memanjang ke samping.
-                    const boxWidth = Math.floor(width * 0.90);
-                    const boxHeight = Math.floor(height * 0.22);
-                    return { width: boxWidth, height: boxHeight };
-                },
-                videoConstraints: {
-                    facingMode: "environment",
-                    // MEMAKSA RESOLUSI FULL HD (1080p) PADA IPHONE
-                    // Ini membuat detail garis-garis barcode 1D yang tipis terekam super tajam meskipun HP dijauhkan
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                }
-            };
-
-            await qr.start(
-                cameraIdentifier,
-                config,
-                (decoded) => {
-                    keywordInput.value = decoded;
-                    clearBtn.classList.remove("hidden");
-                    
-                    if (navigator.vibrate) {
-                        navigator.vibrate(100);
-                    }
-
-                    stopScanner();
-                    cariProduk();
-                    showToast("Sukses", "Barcode berhasil dipindai!", "success");
-                },
-                (error) => {
-                    // Mengabaikan log deteksi kosong agar performa memori iOS tetap lega
-                }
-            );
-        }
-
-        // Fitur Pemutar Kamera jika gambar buram (Mengalihkan dari lensa 0.5x Ultra-Wide ke lensa Utama 1x)
-        async function switchCamera() {
-            if (!qr || availableCameras.length <= 1) return;
-
-            showToast("Beralih", "Mencoba lensa kamera alternatif...", "info");
-            
-            activeCameraIndex = (activeCameraIndex + 1) % availableCameras.length;
-            const targetCameraId = availableCameras[activeCameraIndex].id;
-
-            try {
-                // Matikan scanner yang sedang berjalan terlebih dahulu
-                await qr.stop();
-                document.getElementById("reader").innerHTML = "";
-                
-                // Nyalakan kembali di perangkat kamera yang baru
-                await runScannerOnDevice(targetCameraId);
-            } catch (err) {
-                console.error("Gagal beralih kamera:", err);
-                showToast("Gagal Beralih", "Lensa kamera tersebut tidak merespon.", "error");
-            }
-        }
-
-        function stopScanner() {
-            const overlay = document.getElementById("scanner-overlay");
-            if (overlay) overlay.classList.add("hidden");
-            document.getElementById("switch-camera-btn").classList.add("hidden");
-
-            if (qr) {
-                qr.stop().then(() => {
-                    qr = null;
-                    document.getElementById("scanner-wrapper").classList.add("hidden");
-                    document.getElementById("reader").innerHTML = "";
-                }).catch(err => {
-                    console.error("Gagal menghentikan scanner", err);
-                    qr = null;
-                    document.getElementById("scanner-wrapper").classList.add("hidden");
-                    document.getElementById("reader").innerHTML = "";
-                });
-            } else {
-                document.getElementById("scanner-wrapper").classList.add("hidden");
-            }
-        }
-    </script>
 </body>
 </html>
