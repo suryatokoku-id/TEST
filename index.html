@@ -1,176 +1,1415 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Scan Barcode Produk</title>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:#f5f5f5;
-padding:20px;
-text-align:center;
-}
-
-h2{
-margin-bottom:20px;
-}
-
-#reader{
-width:100%;
-max-width:420px;
-margin:auto;
-border-radius:12px;
-overflow:hidden;
-}
-
-#hasil{
-margin-top:20px;
-padding:15px;
-background:#fff;
-border-radius:10px;
-font-size:22px;
-font-weight:bold;
-color:#1565c0;
-word-break:break-all;
-}
-
-button{
-margin-top:20px;
-padding:12px 30px;
-font-size:18px;
-border:none;
-border-radius:10px;
-background:#1976d2;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-background:#125ea7;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<h2>Scan Barcode Produk</h2>
-
-<div id="reader"></div>
-
-<div id="hasil">
-Belum ada barcode
-</div>
-
-<button onclick="startScanner()">Mulai Scan</button>
-
-<script>
-
-let scanner;
-
-async function startScanner(){
-
-    document.getElementById("hasil").innerHTML="Membuka kamera...";
-
-    if(scanner){
-        await scanner.clear().catch(()=>{});
-    }
-
-    scanner = new Html5Qrcode("reader");
-
-    try{
-
-        const cameras = await Html5Qrcode.getCameras();
-
-        if(cameras.length===0){
-            alert("Kamera tidak ditemukan");
-            return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Promosi Suryatokoku - Premium Advertising System</title>
+    
+    <!-- Tailwind CSS (Premium Styling & Responsiveness) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        suryared: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#ef4444',
+                            600: '#e53935', // Suryatokoku Red
+                            700: '#dc2626',
+                            900: '#7f1d1d',
+                        },
+                        darkbg: '#0F1115',
+                        darkcard: 'rgba(21, 23, 30, 0.7)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts & FontAwesome for Premium Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F1115;
+            color: #f3f4f6;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(21, 23, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-card {
+            background: rgba(30, 33, 45, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px) scale(1.02);
+            background: rgba(229, 57, 53, 0.15);
+            border-color: rgba(229, 57, 53, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(229, 57, 53, 0.2);
+        }
+        
+        .glass-card.active {
+            background: rgba(229, 57, 53, 0.25);
+            border-color: rgba(229, 57, 53, 0.7);
+            box-shadow: 0 0 15px rgba(229, 57, 53, 0.3);
+        }
+        
+        /* Premium Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 17, 21, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(229, 57, 53, 0.3);
+            border-radius: 9px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(229, 57, 53, 0.6);
+        }
+        
+        /* Equalizer Animation for Promos */
+        .equalizer-bar {
+            width: 8px;
+            height: 40px;
+            background-color: #e53935;
+            animation: bounce 1.2s ease-in-out infinite alternate;
+            border-radius: 4px;
+        }
+        .eq-1 { animation-delay: 0.1s; }
+        .eq-2 { animation-delay: 0.4s; }
+        .eq-3 { animation-delay: 0.2s; }
+        .eq-4 { animation-delay: 0.6s; }
+        .eq-5 { animation-delay: 0.3s; }
+        
+        @keyframes bounce {
+            0% { height: 10px; filter: brightness(0.8); }
+            100% { height: 80px; filter: brightness(1.2); }
+        }
+        
+        /* Pulse Indication */
+        .pulse-red {
+            box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7);
+            animation: pulse-red-anim 2s infinite;
+        }
+        @keyframes pulse-red-anim {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
         }
 
-        let cameraId = cameras[0].id;
+        /* Smooth Hide/Show Transition for Controls */
+        .hud-transition {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Overlay Tooltip Customization */
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col antialiased select-none overflow-hidden bg-darkbg">
 
-        cameras.forEach(cam=>{
+    <!-- OVERLAY AUDIO PROMOSI FULLSCREEN (GLASSMORPHISM BLUR) -->
+    <div id="promoOverlay" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 backdrop-blur-2xl transition-all duration-500 opacity-0 pointer-events-none">
+        <div class="text-center p-8 max-w-2xl flex flex-col items-center">
+            <!-- Pulsing Speaker Icon & Equalizer -->
+            <div class="relative w-40 h-40 flex items-center justify-center bg-suryared-600/20 rounded-full mb-8 pulse-red">
+                <i class="fa-solid fa-volume-high text-6xl text-suryared-500"></i>
+            </div>
+            
+            <div class="flex items-end justify-center gap-2 h-24 mb-8">
+                <div class="equalizer-bar eq-1"></div>
+                <div class="equalizer-bar eq-2"></div>
+                <div class="equalizer-bar eq-3"></div>
+                <div class="equalizer-bar eq-4"></div>
+                <div class="equalizer-bar eq-5"></div>
+            </div>
+            
+            <span class="text-xs uppercase tracking-widest text-suryared-500 font-bold mb-2">SURYATOKOKU BROADCAST SYSTEM</span>
+            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">Sedang Memutar Promosi</h1>
+            <p id="promoFileName" class="text-gray-400 font-medium mb-8 text-lg italic">Audio Suryatokoku Musik.mp3</p>
+            
+            <!-- Custom Progress Bar for Audio -->
+            <div class="w-80 md:w-96 bg-gray-800 h-2 rounded-full overflow-hidden mb-2">
+                <div id="promoProgressBar" class="bg-suryared-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+            <div class="w-full flex justify-between text-xs text-gray-500 px-1">
+                <span id="promoCurrentTime">00:00</span>
+                <span id="promoDuration">00:00</span>
+            </div>
+        </div>
+    </div>
 
-            const name=(cam.label||"").toLowerCase();
+    <!-- MAIN HEADER -->
+    <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0 hud-transition">
+        <!-- Logo & Title Info -->
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-suryared-600 rounded-xl flex items-center justify-center shadow-lg shadow-suryared-600/30">
+                <i class="fa-solid fa-tv text-2xl text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-extrabold tracking-tight text-white uppercase">Suryatokoku TV</h1>
+                    <span class="bg-suryared-600 text-white font-extrabold text-[9px] px-1.5 py-0.5 rounded tracking-wide uppercase">Promo</span>
+                </div>
+                <p class="text-xs text-gray-400 font-medium">Digital Advertising System & Signage</p>
+            </div>
+        </div>
 
-            if(
-                name.includes("back") ||
-                name.includes("rear") ||
-                name.includes("environment")
-            ){
-                cameraId=cam.id;
-            }
+        <!-- Right Side Widgets (Clock, Network Status, API Status) -->
+        <div class="flex items-center gap-6">
+            <!-- Connection Status -->
+            <div class="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
+                <span id="internetStatus">Online</span>
+            </div>
+            
+            <!-- YouTube API Indicator -->
+            <div id="apiIndicator" class="hidden md:flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-400">
+                <i class="fa-brands fa-youtube"></i>
+                <span id="apiStatusText">API Ready</span>
+            </div>
 
+            <!-- Digital Clock Realtime -->
+            <div class="flex flex-col items-end border-l border-white/10 pl-6">
+                <span id="currentTime" class="orbitron text-2xl font-bold tracking-wider text-white">12:00:00</span>
+                <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">MINGGU, 28 JUNI 2026</span>
+            </div>
+
+            <!-- Sidebar Toggle (Mobile Friendly) & Fullscreen Buttons -->
+            <div class="flex items-center gap-2 pl-4 border-l border-white/10">
+                <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors lg:hidden" title="Toggle Playlist">
+                    <i class="fa-solid fa-list-ul"></i>
+                </button>
+                <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-suryared-500 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Fullscreen (F)">
+                    <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT WRAPPER -->
+    <main class="flex-1 flex overflow-hidden relative">
+
+        <!-- SIDEBAR: YOUTUBE SEARCH & PLAYLIST PLAYING -->
+        <aside id="sidebar" class="w-[380px] shrink-0 glass-panel border-r border-white/10 flex flex-col z-30 transition-transform duration-300 lg:translate-x-0 absolute lg:relative h-full -translate-x-full">
+            
+            <!-- SEARCH BANNER & INPUT -->
+            <div class="p-4 border-b border-white/10 bg-black/20">
+                <div class="relative flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            class="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-suryared-500/50 rounded-xl py-3 pl-10 pr-4 text-sm font-medium text-white placeholder-gray-400 outline-none transition-all" 
+                            placeholder="Cari video YouTube..."
+                        >
+                    </div>
+                    <button 
+                        onclick="searchYoutube()" 
+                        class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center gap-2"
+                    >
+                        <span>Cari</span>
+                    </button>
+                </div>
+
+                <!-- SEARCH HISTORY TAGS -->
+                <div id="searchHistory" class="flex flex-wrap gap-1.5 mt-3 overflow-x-auto max-h-12 scrollbar-none">
+                    <!-- Dynamic tag generation here -->
+                </div>
+            </div>
+
+            <!-- PLAYLIST CONTROLS -->
+            <div class="px-4 py-3 border-b border-white/10 bg-black/10 flex items-center justify-between text-xs font-semibold text-gray-400">
+                <div class="flex items-center gap-2">
+                    <span id="videoCount">0 Video</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Shuffle Button -->
+                    <button id="btnShuffle" onclick="toggleShuffle()" class="hover:text-white transition-colors flex items-center gap-1" title="Acak Playlist">
+                        <i class="fa-solid fa-shuffle"></i> <span>Shuffle</span>
+                    </button>
+                    <!-- Repeat Button -->
+                    <button id="btnRepeat" onclick="toggleRepeat()" class="hover:text-white transition-colors flex items-center gap-1 text-suryared-500" title="Ulangi Playlist">
+                        <i class="fa-solid fa-rotate"></i> <span>Repeat <b id="repeatModeText">All</b></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RESULT ITEMS PLAYLIST CONTAINER -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-3" id="results">
+                <!-- Initial Empty/Welcome State -->
+                <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
+                        <i class="fa-brands fa-youtube text-3xl text-suryared-500 animate-pulse"></i>
+                    </div>
+                    <h3 class="font-bold text-white mb-1">Cari Video YouTube</h3>
+                    <p class="text-xs text-gray-500">Masukkan kata kunci di kolom pencarian atas untuk memulai memutar playlist promosi TV Anda.</p>
+                </div>
+            </div>
+            
+            <!-- BOTTOM SYSTEM STATUS INFO -->
+            <div class="p-3 bg-black/40 border-t border-white/10 text-[10px] text-gray-500 flex justify-between items-center">
+                <span>SYSTEM ID: <strong class="text-gray-300">SURYA-TV43</strong></span>
+                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> SYSTEM ONLINE</span>
+            </div>
+        </aside>
+
+        <!-- MAIN PLAYER AREA -->
+        <section id="playerArea" class="flex-1 bg-black relative flex flex-col justify-between">
+            
+            <!-- PREMIUM PLAYER HUD OVERLAY (TOP-LEFT INFO & CLOCK) -->
+            <div id="playerHUD" class="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none opacity-100 transition-opacity duration-300">
+                <!-- Video Title & Details Metadata -->
+                <div class="glass-panel p-4 rounded-xl flex items-center gap-4 max-w-lg md:max-w-2xl border border-white/10">
+                    <div class="w-10 h-10 rounded-lg bg-suryared-600/20 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-circle-play text-suryared-500 text-lg animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h4 id="currentVideoTitle" class="text-sm font-bold text-white line-clamp-1">Menunggu Video...</h4>
+                        <div class="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
+                            <span id="currentVideoChannel">No Channel</span>
+                            <span>•</span>
+                            <span id="playbackStatusText" class="text-emerald-400 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Siap Memutar
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Status & Clock HUD overlay for Smart TV Look -->
+                <div class="flex flex-col gap-2 items-end">
+                    <div id="hudClock" class="glass-panel px-4 py-2 rounded-xl text-lg font-extrabold text-white tracking-widest orbitron">
+                        12:00
+                    </div>
+                    <div id="hudStatusBadge" class="glass-panel px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-extrabold text-suryared-500 flex items-center gap-1.5 border border-suryared-500/20">
+                        <i class="fa-solid fa-circle text-[7px] animate-pulse"></i> DIGITAL SIGNAGE
+                    </div>
+                </div>
+            </div>
+
+            <!-- YOUTUBE PLAYER WRAPPER -->
+            <div class="flex-1 w-full h-full relative" id="iframeContainer">
+                <div id="player"></div>
+                
+                <!-- UNSELECTED/EMPTY VIDEO PLAYER SCREEN -->
+                <div id="unselectedState" class="absolute inset-0 bg-darkbg flex flex-col items-center justify-center text-center z-10 transition-opacity duration-500">
+                    <div class="p-8 max-w-md flex flex-col items-center">
+                        <div class="relative w-32 h-32 flex items-center justify-center bg-white/5 rounded-3xl mb-6 border border-white/10">
+                            <i class="fa-solid fa-tv text-5xl text-gray-500"></i>
+                            <div class="absolute -top-1.5 -right-1.5 bg-suryared-600 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white pulse-red">
+                                !
+                            </div>
+                        </div>
+                        <h2 class="text-2xl font-black text-white tracking-tight mb-2">Suryatokoku Signage Active</h2>
+                        <p class="text-sm text-gray-400 leading-relaxed">Sistem monitor periklanan aktif. Silakan cari dan pilih video YouTube melalui menu sidebar untuk memulai penyiaran komersial.</p>
+                        
+                        <div class="mt-6 flex flex-wrap gap-2 justify-center">
+                            <span class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400"><i class="fa-solid fa-keyboard mr-1.5"></i> F (Fullscreen)</span>
+                            <span class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400"><i class="fa-solid fa-keyboard mr-1.5"></i> Space (Pause)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLAYER CONTROLS FOOTER PANEL (HUD-Style) -->
+            <div id="playerControls" class="absolute bottom-4 left-4 right-4 z-20 glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-white/10 opacity-100 transition-opacity duration-300">
+                <!-- Playback Command Buttons -->
+                <div class="flex items-center gap-2">
+                    <button onclick="putarVideoSebelumnya()" class="w-10 h-10 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all flex items-center justify-center" title="Kembali (P)">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button id="btnPlayPause" onclick="togglePlayPause()" class="w-12 h-12 bg-suryared-600 hover:bg-suryared-700 text-white rounded-xl transition-all flex items-center justify-center shadow-lg shadow-suryared-600/30" title="Mulai / Jeda (Space)">
+                        <i class="fa-solid fa-play text-lg"></i>
+                    </button>
+                    <button onclick="putarVideoBerikutnya()" class="w-10 h-10 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all flex items-center justify-center" title="Berikutnya (N)">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                    
+                    <!-- Interactive Sound Controls -->
+                    <div class="flex items-center gap-2 ml-4 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                        <button id="btnMute" onclick="toggleMute()" class="text-gray-400 hover:text-white transition-colors" title="Bungkam (M)">
+                            <i id="muteIcon" class="fa-solid fa-volume-high"></i>
+                        </button>
+                        <input 
+                            type="range" 
+                            id="volumeSlider" 
+                            min="0" 
+                            max="100" 
+                            value="80" 
+                            oninput="adjustVolume(this.value)" 
+                            class="w-20 accent-suryared-500 h-1 bg-gray-700 rounded-lg cursor-pointer"
+                        >
+                    </div>
+                </div>
+
+                <!-- Status & Schedules Indicator Overlay -->
+                <div class="flex items-center gap-4 text-xs font-semibold text-gray-400">
+                    <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        Next Promo: <span id="nextPromoTime" class="font-bold">--:--</span>
+                    </span>
+                    <span id="activePromoTrack" class="hidden md:inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg">
+                        <i class="fa-solid fa-music text-gray-500"></i> No Promo Audio Running
+                    </span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER PANEL SYSTEM -->
+    <footer id="mainFooter" class="h-10 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0 hud-transition">
+        <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-suryared-500 animate-pulse"></i> Suryatokoku Network</span>
+            <span>•</span>
+            <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400">0 Video</strong></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span>Volume: <strong id="footerVolume" class="text-gray-400">80%</strong></span>
+            <span>•</span>
+            <span class="orbitron text-gray-400">SIGNAGE V2.6 PRO</span>
+        </div>
+    </footer>
+
+    <!-- AUDIO PLAYER -->
+    <audio id="promoPlayer" preload="auto"></audio>
+
+    <!-- YouTube IFrame API Library -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        /* ==========================================================================
+           KONFIGURASI UTAMA & JADWAL PROMOSI
+           ========================================================================== */
+        
+        // Backup API Key dari default code Anda
+        const API_KEY = "AIzaSyCQEzM2H5PgmmQND9TN6KcvEI7zBbE1xdM";
+
+        // Jadwal Promosi Audio (Sesuai aslinya)
+        const jadwalPromo = [
+            { waktu:"08:00", audio:"Musik Surtok 07.mp3" },
+            { waktu:"08:15", audio:"Musik Surtok 01.mp3" },
+            { waktu:"08:30", audio:"Musik Surtok 02.mp3" },
+            { waktu:"08:45", audio:"Musik Surtok 03.mp3" },
+            { waktu:"09:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"09:15", audio:"Musik Surtok 04.mp3" },
+            { waktu:"09:30", audio:"Musik Surtok 05.mp3" },
+            { waktu:"09:45", audio:"Musik Surtok 06.mp3" },
+            { waktu:"10:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"10:15", audio:"Musik Surtok 07.mp3" },
+            { waktu:"10:30", audio:"Musik Surtok 01.mp3" },
+            { waktu:"10:45", audio:"Musik Surtok 02.mp3" },
+            { waktu:"11:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"11:15", audio:"Musik Surtok 03.mp3" },
+            { waktu:"11:30", audio:"Musik Surtok 04.mp3" },
+            { waktu:"11:45", audio:"Musik Surtok 05.mp3" },
+            { waktu:"12:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"12:15", audio:"Musik Surtok 06.mp3" },
+            { waktu:"12:30", audio:"Musik Surtok 07.mp3" },
+            { waktu:"12:45", audio:"Musik Surtok 01.mp3" },
+            { waktu:"13:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"13:15", audio:"Musik Surtok 02.mp3" },
+            { waktu:"13:30", audio:"Musik Surtok 03.mp3" },
+            { waktu:"13:45", audio:"Musik Surtok 04.mp3" },
+            { waktu:"14:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"14:15", audio:"Musik Surtok 05.mp3" },
+            { waktu:"14:30", audio:"Musik Surtok 06.mp3" },
+            { waktu:"14:45", audio:"Musik Surtok 07.mp3" },
+            { waktu:"15:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"15:15", audio:"Musik Surtok 01.mp3" },
+            { waktu:"15:30", audio:"Musik Surtok 02.mp3" },
+            { waktu:"15:45", audio:"Musik Surtok 03.mp3" },
+            { waktu:"16:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"16:15", audio:"Musik Surtok 04.mp3" },
+            { waktu:"16:30", audio:"Musik Surtok 05.mp3" },
+            { waktu:"16:45", audio:"Musik Surtok 06.mp3" },
+            { waktu:"17:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"17:15", audio:"Musik Surtok 07.mp3" },
+            { waktu:"17:30", audio:"Musik Surtok 01.mp3" },
+            { waktu:"17:45", audio:"Musik Surtok 02.mp3" },
+            { waktu:"18:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"18:15", audio:"Musik Surtok 03.mp3" },
+            { waktu:"18:30", audio:"Musik Surtok 04.mp3" },
+            { waktu:"18:45", audio:"Musik Surtok 05.mp3" },
+            { waktu:"19:00", audio:"Audio Suryatokoku Musik.mp3" },
+            { waktu:"19:15", audio:"Musik Surtok 06.mp3" },
+            { waktu:"19:30", audio:"Musik Surtok 07.mp3" },
+            { waktu:"19:45", audio:"15 Menit sebelum tutup Surtok.mp3" }
+        ];
+
+        /* ==========================================================================
+           STATE MANAGEMENT
+           ========================================================================== */
+        let player;
+        let playerReady = false;
+        let isMuted = false;
+        let currentVolume = 80;
+        let currentVideoId = "";
+        let lastPlayed = "";
+        let daftarVideo = [];
+        let originalDaftarVideo = []; // Simpan salinan asli untuk shuffle/unshuffle
+        let currentIndex = 0;
+        let isPromoRunning = false;
+        
+        // System Options
+        let isShuffle = false;
+        let repeatMode = 'all'; // 'all' | 'one' | 'none'
+        let searchHistory = JSON.parse(localStorage.getItem('surtok_search_history')) || ['Suryatokoku', 'Komersial Indonesia', 'Promo Supermarket'];
+
+        // IDLE HIDE HUD TIMEOUT
+        let idleTimer;
+        const idleDelay = 5000; // 5 Detik non-aktif, HUD akan disembunyikan di TV
+
+        // Tambahan State untuk Fitur Infinite Scroll Playlist
+        let nextPageToken = "";
+        let isLoadingMore = false;
+        let currentKeyword = "";
+
+        // Tambahan State untuk Jadwal Promo Realtime
+        let lastRenderedMinute = -1;
+
+        /* ==========================================================================
+           UI ELEMENTS BINDING
+           ========================================================================== */
+        const statusHUD = document.getElementById("playbackStatusText");
+        const promoPlayer = document.getElementById("promoPlayer");
+        const promoOverlay = document.getElementById("promoOverlay");
+        const nextPromoTimeEl = document.getElementById("nextPromoTime");
+        const apiIndicator = document.getElementById("apiIndicator");
+        const apiStatusText = document.getElementById("apiStatusText");
+        
+        /* ==========================================================================
+           INITIALIZATION & YOUTUBE API SETUP
+           ========================================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            initClock();
+            initOfflineListeners();
+            renderSearchHistory();
+            setupIdleTimer();
+            updatePromoScheduleDisplay();
+
+            // Pasang event scroll pada elemen playlist untuk mendeteksi scroll mendekati dasar (80%)
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.addEventListener('scroll', () => {
+                if (isPromoRunning) return; // Jangan load data baru saat promosi audio berjalan
+                
+                const threshold = 0.8; // Trigger infinite load di 80% scroll
+                const currentScrollPosition = resultsDiv.scrollTop + resultsDiv.clientHeight;
+                const maxScrollHeight = resultsDiv.scrollHeight;
+
+                if (currentScrollPosition >= maxScrollHeight * threshold) {
+                    loadMoreVideos();
+                }
+            });
         });
 
-        await scanner.start(
+        function onYouTubeIframeAPIReady() {
+            const playerVars = {
+                autoplay: 1,
+                controls: 1,
+                rel: 0,
+                modestbranding: 1
+            };
+            
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: '', // Dikosongkan sesuai instruksi agar standby player saat load pertama
+                playerVars: playerVars,
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange,
+                    onError: onPlayerError
+                }
+            });
+        }
 
-            cameraId,
+        function onPlayerReady(event) {
+            playerReady = true;
+            apiStatusText.innerHTML = "API Active";
+            apiIndicator.className = "hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400";
+            
+            // Atur Volume Sesuai Slider Default
+            player.setVolume(currentVolume);
+        }
 
-            {
-                fps:15,
-                qrbox:{
-                    width:260,
-                    height:120
-                },
+        function onPlayerStateChange(event) {
+            const btnPlayPause = document.getElementById("btnPlayPause");
+            if (event.data === YT.PlayerState.PLAYING) {
+                statusHUD.innerHTML = `<span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> Sedang Memutar`;
+                btnPlayPause.innerHTML = `<i class="fa-solid fa-pause text-lg"></i>`;
+                document.getElementById("unselectedState").style.opacity = "0";
+                document.getElementById("unselectedState").style.pointerEvents = "none";
+                
+                // Track detail video
+                const data = player.getVideoData();
+                if (data) {
+                    document.getElementById("currentVideoTitle").textContent = data.title;
+                    document.getElementById("currentVideoChannel").textContent = data.author;
+                }
+            } 
+            else if (event.data === YT.PlayerState.PAUSED) {
+                statusHUD.innerHTML = `<span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span> Dijeda`;
+                btnPlayPause.innerHTML = `<i class="fa-solid fa-play text-lg"></i>`;
+            } 
+            else if (event.data === YT.PlayerState.ENDED) {
+                statusHUD.innerHTML = `<span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span> Selesai`;
+                if (repeatMode === 'one') {
+                    player.playVideo();
+                } else {
+                    putarVideoBerikutnya();
+                }
+            }
+        }
 
-                formatsToSupport:[
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.ITF
-                ]
+        function onPlayerError(event) {
+            console.error("YouTube Player Error:", event.data);
+            
+            // Tampilkan error tanpa berpindah track (no auto-skip)
+            statusHUD.innerHTML = `<span class="text-suryared-500"><i class="fa-solid fa-circle-exclamation mr-1"></i> Gagal (Error ${event.data})</span>`;
+            showToast(`Gagal memutar video ini. Silakan pilih video lain pada playlist.`, "error");
+        }
 
-            },
+        /* ==========================================================================
+           YOUTUBE SEARCH & CORE MUSIC PLAYLIST LOGIC
+           ========================================================================== */
+        async function searchYoutube() {
+            const keyword = document.getElementById("searchInput").value.trim();
+            if (!keyword) {
+                showToast("Masukkan kata kunci pencarian!", "warning");
+                return;
+            }
 
-            (decodedText)=>{
+            // Simpan riwayat pencarian
+            addSearchHistory(keyword);
 
-                navigator.vibrate?.(100);
+            const resultsDiv = document.getElementById("results");
+            
+            // Tampilkan Skeleton Loading Modern
+            renderSkeletonLoading(resultsDiv);
 
-                document.getElementById("hasil").innerHTML=decodedText;
+            // Reset status token & keyword utama untuk Infinite Scroll halaman berikutnya
+            nextPageToken = "";
+            currentKeyword = keyword;
+            isLoadingMore = false;
 
-                scanner.pause();
+            try {
+                // maxResults=50 mengambil 50 video pertama di halaman pertama
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(keyword)}&key=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
 
-                setTimeout(()=>{
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
 
-                    scanner.resume();
+                if (!data.items || data.items.length === 0) {
+                    renderEmptyState(resultsDiv);
+                    return;
+                }
 
-                },1200);
+                daftarVideo = data.items;
+                originalDaftarVideo = [...data.items]; // Simpan cadangan playlist asli
+                nextPageToken = data.nextPageToken || ""; // Menyimpan token halaman kedua
 
-            },
+                // Simpan ke LocalStorage agar tidak hilang saat reload
+                localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
+                
+                tampilkanHasil(daftarVideo);
+                
+                // Play otomatis video pertama pasca pencarian selesai
+                currentIndex = 0;
+                loadVideo(daftarVideo[0].id.videoId, true);
 
-            ()=>{}
+            } catch (err) {
+                console.error(err);
+                renderErrorState(resultsDiv, err.message);
+            }
+        }
 
-        );
+        // Fungsi Load More untuk memuat 50 video berikutnya secara otomatis tanpa overwrite
+        async function loadMoreVideos() {
+            if (isLoadingMore || !nextPageToken || !currentKeyword) return;
 
-    }
+            isLoadingMore = true;
+            const resultsDiv = document.getElementById("results");
 
-    catch(err){
+            // Membuat visual element indikator loading di bawah playlist saat scroll
+            const loadIndicator = document.createElement("div");
+            loadIndicator.id = "infiniteLoadIndicator";
+            loadIndicator.className = "text-center py-4 border-t border-white/5 text-xs text-gray-400 mt-2 flex flex-col items-center justify-center gap-2";
+            loadIndicator.innerHTML = `
+                <i class="fa-solid fa-spinner animate-spin text-suryared-500 text-sm"></i>
+                <span>Loading video berikutnya...</span>
+            `;
+            resultsDiv.appendChild(loadIndicator);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight; // Pertahankan posisi scroll di loading indicator
 
-        console.error(err);
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(currentKeyword)}&key=${API_KEY}&pageToken=${nextPageToken}`;
+                const response = await fetch(url);
+                const data = await response.json();
 
-        alert(err);
+                // Hapus element loading indicator
+                const existingIndicator = document.getElementById("infiniteLoadIndicator");
+                if (existingIndicator) existingIndicator.remove();
 
-    }
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
 
-}
+                if (data.items && data.items.length > 0) {
+                    // Hindari duplikasi video jika terjadi tumpang tindih data API
+                    const existingIds = new Set(daftarVideo.map(item => item.id.videoId));
+                    const filteredNewItems = data.items.filter(item => !existingIds.has(item.id.videoId));
 
-</script>
+                    if (filteredNewItems.length > 0) {
+                        daftarVideo.push(...filteredNewItems);
+                        originalDaftarVideo.push(...filteredNewItems);
 
+                        // Update playlist tersimpan
+                        localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
+
+                        // Simpan koordinat scroll saat ini untuk menghindari lompatan posisi playlist
+                        const currentScrollTop = resultsDiv.scrollTop;
+
+                        // Perbarui render list item
+                        tampilkanHasil(daftarVideo);
+
+                        // Kembalikan posisi scroll pengguna
+                        resultsDiv.scrollTop = currentScrollTop;
+                    }
+                }
+
+                nextPageToken = data.nextPageToken || ""; // Dapatkan token halaman selanjutnya
+                isLoadingMore = false;
+
+            } catch (err) {
+                console.error("Gagal memuat video berikutnya:", err);
+
+                // Hapus element loading indicator
+                const existingIndicator = document.getElementById("infiniteLoadIndicator");
+                if (existingIndicator) existingIndicator.remove();
+
+                // Munculkan baris error kecil di dasar playlist
+                const errorIndicator = document.createElement("div");
+                errorIndicator.id = "infiniteErrorIndicator";
+                errorIndicator.className = "text-center py-3 bg-suryared-900/20 border border-suryared-500/30 rounded-xl text-xs text-suryared-400 font-semibold mt-2 mx-2 animate-pulse";
+                errorIndicator.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gagal mengambil video berikutnya.`;
+                resultsDiv.appendChild(errorIndicator);
+                resultsDiv.scrollTop = resultsDiv.scrollHeight;
+
+                // Hilangkan banner error secara otomatis setelah 4 detik
+                setTimeout(() => {
+                    const existingErr = document.getElementById("infiniteErrorIndicator");
+                    if (existingErr) existingErr.remove();
+                }, 4000);
+
+                isLoadingMore = false;
+            }
+        }
+
+        function tampilkanHasil(items) {
+            const resultsDiv = document.getElementById("results");
+            
+            // Hapus isi lama sebelum menulis ulang, tapi tidak memicu flash karena diproses instan
+            resultsDiv.innerHTML = "";
+            
+            document.getElementById("videoCount").textContent = `${items.length} Video`;
+            document.getElementById("footerPlaylistCount").textContent = `${items.length} Video`;
+
+            items.forEach((item, index) => {
+                const videoId = item.id.videoId;
+                const title = item.snippet.title;
+                const channel = item.snippet.channelTitle;
+                const thumb = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : item.snippet.thumbnails.default.url;
+                const isPlaying = (index === currentIndex && currentVideoId === videoId);
+
+                const card = document.createElement("div");
+                card.className = `glass-card p-3 rounded-2xl flex gap-3 cursor-pointer relative overflow-hidden ${isPlaying ? 'active' : ''}`;
+                card.id = `card-${videoId}`;
+                
+                card.innerHTML = `
+                    <div class="relative w-28 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-900">
+                        <img src="${thumb}" class="w-full h-full object-cover">
+                        ${isPlaying ? `
+                            <div class="absolute inset-0 bg-suryared-600/80 backdrop-blur-sm flex items-center justify-center">
+                                <span class="text-white text-xs font-bold uppercase tracking-widest animate-pulse"><i class="fa-solid fa-play mr-1"></i> Playing</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="flex flex-col justify-between py-1 flex-1">
+                        <div>
+                            <h4 class="text-xs font-bold text-white line-clamp-2 leading-snug hover:text-suryared-500">${title}</h4>
+                            <p class="text-[10px] text-gray-400 font-semibold mt-1"><i class="fa-solid fa-circle-check text-suryared-500 mr-1 text-[8px]"></i>${channel}</p>
+                        </div>
+                        <span class="text-[9px] text-gray-500">Live TV Broadcast</span>
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    currentIndex = index;
+                    loadVideo(videoId, true);
+                };
+
+                resultsDiv.appendChild(card);
+            });
+        }
+
+        function loadVideo(videoId, playNow = true) {
+            currentVideoId = videoId;
+            if (!playerReady || !player) return;
+
+            // Perbarui UI Aktivitas Card
+            const allCards = document.querySelectorAll('.glass-card');
+            allCards.forEach(card => card.classList.remove('active'));
+            
+            const activeCard = document.getElementById(`card-${videoId}`);
+            if (activeCard) {
+                activeCard.classList.add('active');
+            }
+
+            // Tampilkan Detail Video Aktif
+            const activeVideoData = daftarVideo[currentIndex];
+            if (activeVideoData) {
+                document.getElementById("currentVideoTitle").textContent = activeVideoData.snippet.title;
+                document.getElementById("currentVideoChannel").textContent = activeVideoData.snippet.channelTitle;
+            }
+
+            if (playNow) {
+                player.loadVideoById(videoId);
+            } else {
+                player.cueVideoById(videoId);
+            }
+            
+            document.getElementById("unselectedState").style.opacity = "0";
+            document.getElementById("unselectedState").style.pointerEvents = "none";
+            scrollToActiveVideo();
+        }
+
+        function putarVideoBerikutnya() {
+            if (daftarVideo.length === 0) return;
+
+            currentIndex++;
+            if (currentIndex >= daftarVideo.length) {
+                if (repeatMode === 'all') {
+                    currentIndex = 0; // Mulai lagi dari awal
+                } else {
+                    statusHUD.innerHTML = `Playlist Selesai`;
+                    return;
+                }
+            }
+
+            const nextVideo = daftarVideo[currentIndex];
+            loadVideo(nextVideo.id.videoId, true);
+            tampilkanHasil(daftarVideo); // Refresh indicator play
+        }
+
+        function putarVideoSebelumnya() {
+            if (daftarVideo.length === 0) return;
+
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = daftarVideo.length - 1; // Ke akhir playlist
+            }
+
+            const prevVideo = daftarVideo[currentIndex];
+            loadVideo(prevVideo.id.videoId, true);
+            tampilkanHasil(daftarVideo); // Refresh list
+        }
+
+        /* ==========================================================================
+           CONTROLS: SHUFFLE, REPEAT, VOLUME, PLAYBACK
+           ========================================================================== */
+        function togglePlayPause() {
+            if (!playerReady) return;
+            const state = player.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+        }
+
+        function toggleMute() {
+            if (!playerReady) return;
+            isMuted = !isMuted;
+            const muteIcon = document.getElementById("muteIcon");
+            
+            if (isMuted) {
+                player.mute();
+                muteIcon.className = "fa-solid fa-volume-xmark text-suryared-500 animate-pulse";
+                showToast("Suara Dibungkam", "info");
+            } else {
+                player.unmute();
+                muteIcon.className = "fa-solid fa-volume-high text-white";
+                showToast("Suara Aktif", "info");
+            }
+        }
+
+        function adjustVolume(val) {
+            currentVolume = val;
+            document.getElementById("footerVolume").textContent = `${val}%`;
+            if (playerReady && player) {
+                player.setVolume(val);
+                if (val == 0) {
+                    document.getElementById("muteIcon").className = "fa-solid fa-volume-xmark text-suryared-500";
+                } else {
+                    document.getElementById("muteIcon").className = "fa-solid fa-volume-high text-white";
+                    player.unmute();
+                    isMuted = false;
+                }
+            }
+        }
+
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            const btn = document.getElementById("btnShuffle");
+            if (isShuffle) {
+                btn.classList.add("text-suryared-500");
+                // Acak urutan array
+                daftarVideo = [...daftarVideo].sort(() => Math.random() - 0.5);
+                showToast("Playlist diacak", "success");
+            } else {
+                btn.classList.remove("text-suryared-500");
+                // Kembalikan ke susunan asli
+                daftarVideo = [...originalDaftarVideo];
+                showToast("Urutan playlist normal", "info");
+            }
+            tampilkanHasil(daftarVideo);
+        }
+
+        function toggleRepeat() {
+            const modeText = document.getElementById("repeatModeText");
+            const btn = document.getElementById("btnRepeat");
+            
+            if (repeatMode === 'all') {
+                repeatMode = 'one';
+                modeText.textContent = "One";
+                btn.classList.add("text-suryared-500");
+                showToast("Ulangi satu video saja", "info");
+            } else if (repeatMode === 'one') {
+                repeatMode = 'none';
+                modeText.textContent = "Off";
+                btn.classList.remove("text-suryared-500");
+                showToast("Ulangi playlist nonaktif", "warning");
+            } else {
+                repeatMode = 'all';
+                modeText.textContent = "All";
+                btn.classList.add("text-suryared-500");
+                showToast("Ulangi semua playlist", "info");
+            }
+        }
+
+        /* ==========================================================================
+           BROADCAST JADWAL PROMOSI AUDIO (CRITICAL CORE ENGINE)
+           ========================================================================== */
+        // Jalankan pengecekan jadwal promosi setiap detik
+        setInterval(() => {
+            const now = new Date();
+            const jam = String(now.getHours()).padStart(2, '0');
+            const menit = String(now.getMinutes()).padStart(2, '0');
+            const currentMinute = now.getMinutes();
+            const waktuSekarang = `${jam}:${menit}`;
+
+            jadwalPromo.forEach(promo => {
+                const uniqueKey = waktuSekarang + "_" + promo.audio;
+
+                if (promo.waktu === waktuSekarang && lastPlayed !== uniqueKey) {
+                    lastPlayed = uniqueKey;
+                    jalankanPromo(promo);
+                }
+            });
+            
+            // Hitung jadwal promo berikutnya untuk ditampilkan di panel bawah
+            updatePromoScheduleDisplay();
+
+            // Refresh tampilan list jadwal promo setiap menit berubah (untuk memindahkan lencana 'NEXT')
+            if (currentMinute !== lastRenderedMinute) {
+                lastRenderedMinute = currentMinute;
+                const promoDiv = document.getElementById("promoScheduleList");
+                if (promoDiv && !promoDiv.classList.contains("hidden")) {
+                    renderPromoSchedule();
+                }
+            }
+        }, 1000);
+
+        /* ==========================================================================
+           TAB SWITCHER & RENDERING JADWAL PROMO
+           ========================================================================== */
+        function switchSidebarTab(tabName) {
+            const btnPlaylist = document.getElementById("tabPlaylist");
+            const btnPromo = document.getElementById("tabPromo");
+            const resultsDiv = document.getElementById("results");
+            const promoDiv = document.getElementById("promoScheduleList");
+            const playlistControls = document.getElementById("playlistControlsContainer");
+
+            if (tabName === 'playlist') {
+                // Style Active Button
+                btnPlaylist.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-suryared-600 text-white shadow-lg shadow-suryared-600/20 flex items-center justify-center gap-1.5";
+                btnPromo.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-white/5 text-gray-400 hover:bg-white/10 flex items-center justify-center gap-1.5 border border-white/5";
+                
+                // Toggle Container
+                resultsDiv.classList.remove("hidden");
+                promoDiv.classList.add("hidden");
+                if (playlistControls) playlistControls.classList.remove("hidden");
+            } else {
+                // Style Active Button
+                btnPromo.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-suryared-600 text-white shadow-lg shadow-suryared-600/20 flex items-center justify-center gap-1.5";
+                btnPlaylist.className = "flex-1 py-2 px-3 text-[11px] font-bold rounded-xl transition-all duration-200 bg-white/5 text-gray-400 hover:bg-white/10 flex items-center justify-center gap-1.5 border border-white/5";
+                
+                // Toggle Container
+                resultsDiv.classList.add("hidden");
+                promoDiv.classList.remove("hidden");
+                if (playlistControls) playlistControls.classList.add("hidden");
+                
+                renderPromoSchedule();
+            }
+        }
+
+        function renderPromoSchedule() {
+            const container = document.getElementById("promoScheduleList");
+            if (!container) return;
+            container.innerHTML = "";
+
+            const now = new Date();
+            const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+            // Hitung mana promo berikutnya untuk diberi lencana khusus 'NEXT'
+            let nextPromoIndex = -1;
+            let minDiff = Infinity;
+
+            jadwalPromo.forEach((p, idx) => {
+                const parts = p.waktu.split(":");
+                const promoMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                
+                let diff = promoMinutes - minutesNow;
+                if (diff <= 0) {
+                    diff += 24 * 60; // next day
+                }
+                
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nextPromoIndex = idx;
+                }
+            });
+
+            // Render daftar promo yang dijadwalkan
+            jadwalPromo.forEach((promo, idx) => {
+                const isNext = (idx === nextPromoIndex);
+                
+                const card = document.createElement("div");
+                card.className = `glass-card p-3 rounded-xl flex items-center justify-between border transition-all duration-200 ${
+                    isNext 
+                    ? 'border-suryared-500/50 bg-suryared-900/10 shadow-lg shadow-suryared-500/5' 
+                    : 'border-white/5 bg-white/5'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 ${
+                            isNext 
+                            ? 'bg-suryared-600 text-white animate-pulse' 
+                            : 'bg-white/5 text-gray-300 border border-white/5'
+                        } orbitron">
+                            ${promo.waktu}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-white line-clamp-1">${promo.audio}</span>
+                            <span class="text-[9px] text-gray-500">Audio Broadcast</span>
+                        </div>
+                    </div>
+                    ${isNext ? `
+                        <span class="text-[9px] bg-suryared-600/20 border border-suryared-600/30 text-suryared-400 font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase flex items-center gap-1 animate-pulse">
+                            <span class="w-1.5 h-1.5 bg-suryared-500 rounded-full"></span> NEXT
+                        </span>
+                    ` : `
+                        <i class="fa-solid fa-music text-gray-600 text-xs mr-1"></i>
+                    `}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function jalankanPromo(promo) {
+            isPromoRunning = true;
+            
+            // Jeda Video YouTube
+            if (playerReady && player) {
+                player.pauseVideo();
+            }
+
+            // Atur Visual Overlay Promosi Fullscreen
+            document.getElementById("promoFileName").textContent = promo.audio;
+            promoOverlay.style.opacity = "1";
+            promoOverlay.style.pointerEvents = "auto";
+            
+            document.getElementById("activePromoTrack").innerHTML = `
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-suryared-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-suryared-600"></span>
+                </span>
+                <span class="text-suryared-500 font-extrabold text-[10px] animate-pulse">🔊 SEDANG PROMO: ${promo.audio}</span>
+            `;
+
+            // Mainkan Promo Audio sesuai file asli
+            promoPlayer.src = promo.audio;
+            
+            // Mengatasi error autoplays browser
+            const playPromise = promoPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    showToast(`Broadcasting: ${promo.audio}`, "info");
+                }).catch(error => {
+                    console.log("Audio play diproteksi browser. Memerlukan interaksi user.");
+                });
+            }
+
+            // Sync Progress Audio Bar
+            promoPlayer.ontimeupdate = () => {
+                const percent = (promoPlayer.currentTime / promoPlayer.duration) * 100;
+                document.getElementById("promoProgressBar").style.width = `${percent}%`;
+                
+                document.getElementById("promoCurrentTime").textContent = formatTime(promoPlayer.currentTime);
+                if (promoPlayer.duration) {
+                    document.getElementById("promoDuration").textContent = formatTime(promoPlayer.duration);
+                }
+            };
+
+            // Pasca Promosi Berakhir
+            promoPlayer.onended = () => {
+                selesaiPromo();
+            };
+        }
+
+        function selesaiPromo() {
+            isPromoRunning = false;
+            promoOverlay.style.opacity = "0";
+            promoOverlay.style.pointerEvents = "none";
+            document.getElementById("promoProgressBar").style.width = "0%";
+            document.getElementById("activePromoTrack").innerHTML = `<i class="fa-solid fa-music text-gray-500"></i> No Promo Audio Running`;
+            
+            // Lanjutkan kembali pemutaran Video YouTube
+            if (playerReady && player) {
+                player.playVideo();
+            }
+        }
+
+        function updatePromoScheduleDisplay() {
+            const now = new Date();
+            const minutesNow = now.getHours() * 60 + now.getMinutes();
+            
+            let nextPromo = null;
+            let minDiff = Infinity;
+
+            jadwalPromo.forEach(p => {
+                const parts = p.waktu.split(":");
+                const promoMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                
+                let diff = promoMinutes - minutesNow;
+                // Jika jadwal sudah lewat hari ini, hitung untuk esok hari
+                if (diff <= 0) {
+                    diff += 24 * 60;
+                }
+                
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nextPromo = p;
+                }
+            });
+
+            if (nextPromo) {
+                nextPromoTimeEl.textContent = `${nextPromo.waktu} (${nextPromo.audio.substring(0, 15)}...)`;
+            }
+        }
+
+        /* ==========================================================================
+           KEYBOARD SHORTCUTS SYSTEM & TV UX (DAPAT DIPAKAI DI MONITOR KASIR)
+           ========================================================================== */
+        document.addEventListener('keydown', (e) => {
+            // Abaikan shortcut jika user sedang mengetik di kolom pencarian
+            if (document.activeElement.tagName === 'INPUT') {
+                return;
+            }
+
+            const key = e.key.toLowerCase();
+            
+            if (e.code === "Space" || key === " ") {
+                e.preventDefault();
+                togglePlayPause();
+                showToast("Play/Pause Toggle", "info");
+            } else if (key === "f") {
+                toggleFullscreen();
+            } else if (key === "n") {
+                putarVideoBerikutnya();
+                showToast("Video Berikutnya", "info");
+            } else if (key === "p") {
+                putarVideoSebelumnya();
+                showToast("Video Sebelumnya", "info");
+            } else if (key === "m") {
+                toggleMute();
+            }
+        });
+
+        /* ==========================================================================
+           TV AUTO-HIDE MOUSE HUD LOGIC (CLEAN DISPLAY ON TV MONITOR)
+           ========================================================================== */
+        function setupIdleTimer() {
+            // Ketika kursor bergerak, munculkan HUD
+            document.addEventListener('mousemove', resetIdleTimer);
+            document.addEventListener('mousedown', resetIdleTimer);
+            document.addEventListener('keydown', resetIdleTimer);
+            document.addEventListener('touchstart', resetIdleTimer);
+
+            resetIdleTimer();
+        }
+
+        function resetIdleTimer() {
+            showHUD();
+            clearTimeout(idleTimer);
+            
+            // Jangan hide jika player sedang di-pause / menu dialog terbuka
+            if (document.fullscreenElement) {
+                idleTimer = setTimeout(hideHUD, idleDelay);
+            }
+        }
+
+        function hideHUD() {
+            document.getElementById("mainHeader").classList.add("-translate-y-full", "opacity-0");
+            document.getElementById("mainFooter").classList.add("translate-y-full", "opacity-0");
+            document.getElementById("playerControls").classList.add("opacity-0");
+            document.getElementById("playerHUD").classList.add("opacity-0");
+            
+            document.body.style.cursor = "none";
+        }
+
+        function showHUD() {
+            document.getElementById("mainHeader").classList.remove("-translate-y-full", "opacity-0");
+            document.getElementById("mainFooter").classList.remove("translate-y-full", "opacity-0");
+            document.getElementById("playerControls").classList.remove("opacity-0");
+            document.getElementById("playerHUD").classList.remove("opacity-0");
+            
+            document.body.style.cursor = "default";
+        }
+
+        /* ==========================================================================
+           UTILITIES, STORAGE, & RESPONSIVENESS HELPER
+           ========================================================================== */
+        function initClock() {
+            setInterval(() => {
+                const now = new Date();
+                const jam = String(now.getHours()).padStart(2, '0');
+                const menit = String(now.getMinutes()).padStart(2, '0');
+                const detik = String(now.getSeconds()).padStart(2, '0');
+                
+                // Formatted date Indonesian
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const tglString = now.toLocaleDateString('id-ID', options);
+
+                document.getElementById("currentTime").textContent = `${jam}:${menit}:${detik}`;
+                document.getElementById("hudClock").textContent = `${jam}:${menit}`;
+                document.getElementById("currentDate").textContent = tglString.toUpperCase();
+            }, 1000);
+        }
+
+        function initOfflineListeners() {
+            const netStatus = document.getElementById("internetStatus");
+            window.addEventListener('online', () => {
+                netStatus.textContent = "Online";
+                netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400";
+                showToast("Koneksi Internet Terhubung Kembali", "success");
+            });
+            window.addEventListener('offline', () => {
+                netStatus.textContent = "Offline";
+                netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-suryared-500/10 border border-suryared-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-suryared-400";
+                showToast("Koneksi Internet Terputus", "error");
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("-translate-x-full");
+        }
+
+        function toggleFullscreen() {
+            const icon = document.getElementById("fullscreenIcon");
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    icon.className = "fa-solid fa-compress";
+                    showToast("Mode TV Fullscreen diaktifkan", "success");
+                }).catch(err => {
+                    showToast("Gagal mengaktifkan mode Fullscreen", "error");
+                });
+            } else {
+                document.exitFullscreen();
+                icon.className = "fa-solid fa-expand";
+            }
+        }
+
+        // Handle ESC Key exit fullscreen icon sync
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById("fullscreenIcon");
+            if (!document.fullscreenElement) {
+                icon.className = "fa-solid fa-expand";
+            }
+        });
+
+        // Search History Handling
+        function addSearchHistory(word) {
+            searchHistory = searchHistory.filter(item => item.toLowerCase() !== word.toLowerCase());
+            searchHistory.unshift(word);
+            if (searchHistory.length > 5) searchHistory.pop(); // Maks 5 riwayat
+            localStorage.setItem('surtok_search_history', JSON.stringify(searchHistory));
+            renderSearchHistory();
+        }
+
+        function renderSearchHistory() {
+            const container = document.getElementById("searchHistory");
+            container.innerHTML = "";
+            searchHistory.forEach(history => {
+                const badge = document.createElement("button");
+                badge.className = "text-[10px] bg-white/5 hover:bg-suryared-600/30 hover:text-white px-2.5 py-1 rounded-full text-gray-400 font-semibold transition-colors duration-200 border border-white/5";
+                badge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[8px] mr-1"></i> ${history}`;
+                badge.onclick = () => {
+                    document.getElementById("searchInput").value = history;
+                    searchYoutube();
+                };
+                container.appendChild(badge);
+            });
+        }
+
+        function formatTime(secs) {
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function scrollToActiveVideo() {
+            const activeCard = document.getElementById(`card-${currentVideoId}`);
+            if (activeCard) {
+                activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        /* ==========================================================================
+           MODERN STATES INJECTION: SKELETON, EMPTY, ERROR, TOASTS
+           ========================================================================== */
+        function renderSkeletonLoading(target) {
+            target.innerHTML = "";
+            for (let i = 0; i < 4; i++) {
+                const skeleton = document.createElement("div");
+                skeleton.className = "p-3 rounded-2xl bg-white/5 flex gap-3 animate-pulse border border-white/5";
+                skeleton.innerHTML = `
+                    <div class="w-28 h-20 bg-white/10 rounded-lg shrink-0"></div>
+                    <div class="flex-1 py-1 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="h-3 bg-white/10 rounded w-11/12"></div>
+                            <div class="h-3 bg-white/10 rounded w-2/3"></div>
+                        </div>
+                        <div class="h-2 bg-white/5 rounded w-1/2"></div>
+                    </div>
+                `;
+                target.appendChild(skeleton);
+            }
+        }
+
+        function renderEmptyState(target) {
+            target.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
+                    <div class="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 border border-amber-500/20">
+                        <i class="fa-solid fa-magnifying-glass-minus text-2xl text-amber-500"></i>
+                    </div>
+                    <h3 class="font-bold text-white mb-1">Video Tidak Ditemukan</h3>
+                    <p class="text-xs text-gray-500">Coba gunakan kata kunci promosi lain atau periksa kembali penulisan pencarian Anda.</p>
+                </div>
+            `;
+        }
+
+        function renderErrorState(target, errMsg) {
+            target.innerHTML = `
+                <div class="bg-suryared-900/20 border border-suryared-500/30 p-4 rounded-2xl text-center flex flex-col items-center">
+                    <i class="fa-solid fa-circle-exclamation text-3xl text-suryared-500 mb-2"></i>
+                    <h4 class="font-bold text-white text-sm mb-1">Peringatan Sistem</h4>
+                    <p class="text-xs text-gray-400 mb-3 leading-relaxed">${errMsg || "Koneksi API YouTube bermasalah atau kuota harian terlampaui."}</p>
+                    <button onclick="searchYoutube()" class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-xs py-2 px-4 rounded-lg transition-colors">
+                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Coba Lagi
+                    </button>
+                </div>
+            `;
+        }
+
+        // Custom Toast Notification System (Replacement for standard window alert)
+        function showToast(message, type = 'info') {
+            // Hapus toast sebelumnya jika ada
+            const existingToast = document.getElementById("systemToast");
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement("div");
+            toast.id = "systemToast";
+            
+            let colorClass = "bg-darkcard border-white/10 text-white";
+            let icon = "fa-info-circle text-blue-400";
+            
+            if (type === 'success') {
+                colorClass = "bg-emerald-950/90 border-emerald-500/30 text-emerald-100";
+                icon = "fa-check-circle text-emerald-400";
+            } else if (type === 'error') {
+                colorClass = "bg-suryared-950/90 border-suryared-500/30 text-suryared-100";
+                icon = "fa-triangle-exclamation text-suryared-400";
+            } else if (type === 'warning') {
+                colorClass = "bg-amber-950/90 border-amber-500/30 text-amber-100";
+                icon = "fa-exclamation-circle text-amber-400";
+            }
+
+            toast.className = `fixed bottom-24 right-6 px-5 py-3.5 rounded-xl border flex items-center gap-3 shadow-2xl z-[999] transition-all duration-300 transform translate-y-4 opacity-0 ${colorClass}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} text-lg"></i>
+                <span class="text-xs font-semibold tracking-wide">${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+            
+            // Animate In
+            setTimeout(() => {
+                toast.classList.remove("translate-y-4", "opacity-0");
+            }, 10);
+
+            // Animate Out
+            setTimeout(() => {
+                toast.classList.add("translate-y-4", "opacity-0");
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
 </body>
 </html>
