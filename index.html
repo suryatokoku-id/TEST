@@ -163,7 +163,7 @@
         </div>
     </div>
 
-    <!-- MAIN HEADER (Always Visible) -->
+    <!-- MAIN HEADER -->
     <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0">
         <!-- Logo & Title Info -->
         <div class="flex items-center gap-4">
@@ -199,7 +199,7 @@
                 <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">MINGGU, 28 JUNI 2026</span>
             </div>
 
-            <!-- Sidebar Toggle & Fullscreen Buttons -->
+            <!-- Sidebar Toggle (Mobile Friendly) & Fullscreen Buttons -->
             <div class="flex items-center gap-2 pl-4 border-l border-white/10">
                 <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Playlist">
                     <i class="fa-solid fa-list-ul"></i>
@@ -215,7 +215,6 @@
     <main class="flex-1 flex overflow-hidden relative">
 
         <!-- SIDEBAR: YOUTUBE SEARCH & PLAYLIST PLAYING -->
-        <!-- Memiliki fixed width wrapper di dalamnya agar transisi lebar w-0 ke w-[380px] berjalan super smooth -->
         <aside id="sidebar" class="w-[380px] shrink-0 glass-panel border-r border-white/10 flex flex-col z-30 transition-all duration-500 ease-in-out overflow-hidden relative h-full">
             <div class="w-[380px] flex flex-col h-full shrink-0">
                 
@@ -264,7 +263,7 @@
 
                 <!-- RESULT ITEMS PLAYLIST CONTAINER -->
                 <div class="flex-1 overflow-y-auto p-4 space-y-3" id="results">
-                    <!-- Initial Empty State -->
+                    <!-- Initial Empty/Welcome State -->
                     <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
                         <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
                             <i class="fa-brands fa-youtube text-3xl text-suryared-500 animate-pulse"></i>
@@ -311,33 +310,61 @@
         </section>
     </main>
 
-    <!-- FOOTER PANEL SYSTEM (Always Visible & Holds Promo/Track Meta) -->
-    <footer id="mainFooter" class="h-12 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0">
-        <!-- Playlist Status Info -->
+    <!-- FOOTER PANEL SYSTEM -->
+    <footer id="mainFooter" class="h-14 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0">
+        <!-- Left Side: Playlist Status Info -->
         <div class="flex items-center gap-4">
             <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-suryared-500 animate-pulse"></i> Suryatokoku Network</span>
             <span>•</span>
-            <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400">0 Video</strong></span>
+            <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400 font-bold">0 Video</strong></span>
         </div>
 
-        <!-- RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS (Middle Positioned) -->
+        <!-- Middle Side: RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS -->
         <div class="flex items-center gap-4">
             <!-- Next Promo Badge -->
-            <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1 rounded-lg text-suryared-400 font-bold">
+            <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400 font-bold">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 Next Promo: <span id="nextPromoTime" class="font-bold">--:--</span>
             </span>
             <!-- Active Promo Audio Track Meta -->
-            <span id="activePromoTrack" class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+            <span id="activePromoTrack" class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg">
                 <i class="fa-solid fa-music text-gray-400"></i> No Promo Audio Running
             </span>
         </div>
 
-        <!-- System Version & Volume info -->
+        <!-- Right Side: Playback Controls & Volume Slider/Status -->
         <div class="flex items-center gap-4">
-            <span>Volume: <strong id="footerVolume" class="text-gray-400">80%</strong></span>
-            <span>•</span>
-            <span class="orbitron text-gray-400">SIGNAGE V2.6 PRO</span>
+            <!-- Playback Buttons (Left of Volume) -->
+            <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-xl">
+                <button onclick="putarVideoSebelumnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Kembali (P)">
+                    <i class="fa-solid fa-backward-step text-sm"></i>
+                </button>
+                <button id="btnPlayPause" onclick="togglePlayPause()" class="w-8 h-8 bg-suryared-600 hover:bg-suryared-700 text-white rounded-lg flex items-center justify-center transition-colors shadow-sm shadow-suryared-600/30" title="Mulai / Jeda (Space)">
+                    <i id="btnPlayPauseIcon" class="fa-solid fa-play text-xs"></i>
+                </button>
+                <button onclick="putarVideoBerikutnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Berikutnya (N)">
+                    <i class="fa-solid fa-forward-step text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Volume Control System -->
+            <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-xl">
+                <button id="btnMute" onclick="toggleMute()" class="w-8 h-8 hover:bg-white/10 text-gray-400 hover:text-white rounded-lg flex items-center justify-center transition-colors" title="Bungkam (M)">
+                    <i id="muteIcon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+                <input 
+                    type="range" 
+                    id="volumeSlider" 
+                    min="0" 
+                    max="100" 
+                    value="80" 
+                    oninput="adjustVolume(this.value)" 
+                    class="w-20 accent-suryared-500 h-1 bg-gray-700 rounded-lg cursor-pointer"
+                >
+                <span class="text-xs text-gray-400 font-semibold min-w-[70px]">
+                    Volume: <strong id="footerVolume" class="text-gray-200">80%</strong>
+                </span>
+            </div>
         </div>
     </footer>
 
@@ -357,7 +384,7 @@
 
         // Jadwal Promosi Audio (Sesuai aslinya)
         const jadwalPromo = [
-            { waktu:"22:00", audio:"Musik Surtok 07.mp3" },
+            { waktu:"08:00", audio:"Musik Surtok 07.mp3" },
             { waktu:"08:15", audio:"Musik Surtok 01.mp3" },
             { waktu:"08:30", audio:"Musik Surtok 02.mp3" },
             { waktu:"08:45", audio:"Musik Surtok 03.mp3" },
@@ -426,10 +453,6 @@
         let repeatMode = 'all'; // 'all' | 'one' | 'none'
         let searchHistory = JSON.parse(localStorage.getItem('surtok_search_history')) || ['Suryatokoku', 'Komersial Indonesia', 'Promo Supermarket'];
 
-        // IDLE HIDE HUD TIMEOUT (Mute mouse cursor inside fullscreen mode only)
-        let idleTimer;
-        const idleDelay = 5000; // 5 Detik non-aktif kursor menghilang
-
         // SIDEBAR 15-SECOND AUTO HIDE TIMEOUT
         let sidebarTimer;
         const sidebarDelay = 15000; // 15 Detik
@@ -447,7 +470,6 @@
             initClock();
             initOfflineListeners();
             renderSearchHistory();
-            setupIdleTimer();
             setupSidebarTimer();
             updatePromoScheduleDisplay();
 
@@ -501,11 +523,17 @@
         }
 
         function onPlayerStateChange(event) {
+            const btnIcon = document.getElementById("btnPlayPauseIcon");
             if (event.data === YT.PlayerState.PLAYING) {
+                btnIcon.className = "fa-solid fa-pause text-xs";
                 document.getElementById("unselectedState").style.opacity = "0";
                 document.getElementById("unselectedState").style.pointerEvents = "none";
             } 
+            else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
+                btnIcon.className = "fa-solid fa-play text-xs";
+            }
             else if (event.data === YT.PlayerState.ENDED) {
+                btnIcon.className = "fa-solid fa-play text-xs";
                 if (repeatMode === 'one') {
                     player.playVideo();
                 } else {
@@ -519,6 +547,9 @@
             showToast(`Gagal memutar video ini. Silakan pilih video lain pada playlist.`, "error");
         }
 
+        /* ==========================================================================
+           STREAMING_CHUNK: Setting up asynchronous scroll loading & searching...
+           ========================================================================== */
         /* ==========================================================================
            YOUTUBE SEARCH & CORE MUSIC PLAYLIST LOGIC
            ========================================================================== */
@@ -586,7 +617,7 @@
             // Membuat visual element indikator loading di bawah playlist saat scroll
             const loadIndicator = document.createElement("div");
             loadIndicator.id = "infiniteLoadIndicator";
-            loadIndicator.className = "text-center py-4 border-t border-white/5 text-xs text-gray-400 mt-2 flex flex-col items-center justify-center gap-2";
+            loadIndicator.className = "text-center py-4 border-t border-white/5 text-xs text-gray-400 mt-2 flex flex-col items-center justify-center gap-2 shrink-0";
             loadIndicator.innerHTML = `
                 <i class="fa-solid fa-spinner animate-spin text-suryared-500 text-sm"></i>
                 <span>Loading video berikutnya...</span>
@@ -776,14 +807,19 @@
             if (!playerReady) return;
             isMuted = !isMuted;
             const muteIcon = document.getElementById("muteIcon");
+            const slider = document.getElementById("volumeSlider");
             
             if (isMuted) {
                 player.mute();
                 muteIcon.className = "fa-solid fa-volume-xmark text-suryared-500 animate-pulse";
+                slider.value = 0;
+                document.getElementById("footerVolume").textContent = `0%`;
                 showToast("Suara Dibungkam", "info");
             } else {
                 player.unmute();
                 muteIcon.className = "fa-solid fa-volume-high text-white";
+                slider.value = currentVolume;
+                document.getElementById("footerVolume").textContent = `${currentVolume}%`;
                 showToast("Suara Aktif", "info");
             }
         }
@@ -791,6 +827,7 @@
         function adjustVolume(val) {
             currentVolume = val;
             document.getElementById("footerVolume").textContent = `${val}%`;
+            document.getElementById("volumeSlider").value = val;
             if (playerReady && player) {
                 player.setVolume(val);
                 if (val == 0) {
@@ -842,6 +879,9 @@
             }
         }
 
+        /* ==========================================================================
+           STREAMING_CHUNK: Integrating timing schedules & audio broadcasting...
+           ========================================================================== */
         /* ==========================================================================
            BROADCAST JADWAL PROMOSI AUDIO (CRITICAL CORE ENGINE)
            ========================================================================== */
@@ -952,72 +992,18 @@
                 }
             });
 
-            if (nextPromo) {
+            const nextPromoTimeEl = document.getElementById("nextPromoTime");
+            if (nextPromoTimeEl && nextPromo) {
                 nextPromoTimeEl.textContent = `${nextPromo.waktu} (${nextPromo.audio.substring(0, 15)}...)`;
             }
         }
 
         /* ==========================================================================
-           KEYBOARD SHORTCUTS SYSTEM & TV UX (DAPAT DIPAKAI DI MONITOR KASIR)
-           ========================================================================== */
-        document.addEventListener('keydown', (e) => {
-            // Abaikan shortcut jika user sedang mengetik di kolom pencarian
-            if (document.activeElement.tagName === 'INPUT') {
-                return;
-            }
-
-            const key = e.key.toLowerCase();
-            
-            if (e.code === "Space" || key === " ") {
-                e.preventDefault();
-                togglePlayPause();
-                showToast("Play/Pause Toggle", "info");
-            } else if (key === "f") {
-                toggleFullscreen();
-            } else if (key === "n") {
-                putarVideoBerikutnya();
-                showToast("Video Berikutnya", "info");
-            } else if (key === "p") {
-                putarVideoSebelumnya();
-                showToast("Video Sebelumnya", "info");
-            } else if (key === "m") {
-                toggleMute();
-            }
-        });
-
-        /* ==========================================================================
-           STREAMING_CHUNK: Configuring the responsive auto-hide sidebar timer...
+           STREAMING_CHUNK: Setup automatic hide and sidebar slide out transition...
            ========================================================================== */
         /* ==========================================================================
            TV AUTO-HIDE & SIDEBAR TIMERS (CLEAN DISPLAY CONFIGURATION)
            ========================================================================== */
-        function setupIdleTimer() {
-            // Deteksi interaksi untuk menyembunyikan kursor mouse saat mode layar penuh (fullscreen)
-            document.addEventListener('mousemove', resetIdleTimer);
-            document.addEventListener('mousedown', resetIdleTimer);
-            document.addEventListener('keydown', resetIdleTimer);
-            document.addEventListener('touchstart', resetIdleTimer);
-
-            resetIdleTimer();
-        }
-
-        function resetIdleTimer() {
-            showHUD();
-            clearTimeout(idleTimer);
-            
-            if (document.fullscreenElement) {
-                idleTimer = setTimeout(hideHUD, idleDelay);
-            }
-        }
-
-        function hideHUD() {
-            document.body.style.cursor = "none";
-        }
-
-        function showHUD() {
-            document.body.style.cursor = "default";
-        }
-
         // SIDEBAR 15s AUTO-HIDE SYSTEM
         function setupSidebarTimer() {
             // Segala bentuk interaksi pengguna di layar akan langsung memicu sidebar tampil kembali
