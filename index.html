@@ -128,12 +128,6 @@
         .hud-transition {
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        /* Overlay Tooltip Customization */
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col antialiased select-none overflow-hidden bg-darkbg">
@@ -169,8 +163,8 @@
         </div>
     </div>
 
-    <!-- MAIN HEADER -->
-    <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0 hud-transition">
+    <!-- MAIN HEADER (Always Visible) -->
+    <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0">
         <!-- Logo & Title Info -->
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-suryared-600 rounded-xl flex items-center justify-center shadow-lg shadow-suryared-600/30">
@@ -205,9 +199,9 @@
                 <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5">MINGGU, 28 JUNI 2026</span>
             </div>
 
-            <!-- Sidebar Toggle (Mobile Friendly) & Fullscreen Buttons -->
+            <!-- Sidebar Toggle & Fullscreen Buttons -->
             <div class="flex items-center gap-2 pl-4 border-l border-white/10">
-                <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors lg:hidden" title="Toggle Playlist">
+                <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Playlist">
                     <i class="fa-solid fa-list-ul"></i>
                 </button>
                 <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-suryared-500 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Fullscreen (F)">
@@ -221,108 +215,81 @@
     <main class="flex-1 flex overflow-hidden relative">
 
         <!-- SIDEBAR: YOUTUBE SEARCH & PLAYLIST PLAYING -->
-        <aside id="sidebar" class="w-[380px] shrink-0 glass-panel border-r border-white/10 flex flex-col z-30 transition-transform duration-300 lg:translate-x-0 absolute lg:relative h-full -translate-x-full">
-            
-            <!-- SEARCH BANNER & INPUT -->
-            <div class="p-4 border-b border-white/10 bg-black/20">
-                <div class="relative flex items-center gap-2">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input 
-                            type="text" 
-                            id="searchInput" 
-                            class="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-suryared-500/50 rounded-xl py-3 pl-10 pr-4 text-sm font-medium text-white placeholder-gray-400 outline-none transition-all" 
-                            placeholder="Cari video YouTube..."
+        <!-- Memiliki fixed width wrapper di dalamnya agar transisi lebar w-0 ke w-[380px] berjalan super smooth -->
+        <aside id="sidebar" class="w-[380px] shrink-0 glass-panel border-r border-white/10 flex flex-col z-30 transition-all duration-500 ease-in-out overflow-hidden relative h-full">
+            <div class="w-[380px] flex flex-col h-full shrink-0">
+                
+                <!-- SEARCH BANNER & INPUT -->
+                <div class="p-4 border-b border-white/10 bg-black/20">
+                    <div class="relative flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input 
+                                type="text" 
+                                id="searchInput" 
+                                class="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-suryared-500/50 rounded-xl py-3 pl-10 pr-4 text-sm font-medium text-white placeholder-gray-400 outline-none transition-all" 
+                                placeholder="Cari video YouTube..."
+                            >
+                        </div>
+                        <button 
+                            onclick="searchYoutube()" 
+                            class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center gap-2"
                         >
+                            <span>Cari</span>
+                        </button>
                     </div>
-                    <button 
-                        onclick="searchYoutube()" 
-                        class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center gap-2"
-                    >
-                        <span>Cari</span>
-                    </button>
-                </div>
 
-                <!-- SEARCH HISTORY TAGS -->
-                <div id="searchHistory" class="flex flex-wrap gap-1.5 mt-3 overflow-x-auto max-h-12 scrollbar-none">
-                    <!-- Dynamic tag generation here -->
-                </div>
-            </div>
-
-            <!-- PLAYLIST CONTROLS -->
-            <div class="px-4 py-3 border-b border-white/10 bg-black/10 flex items-center justify-between text-xs font-semibold text-gray-400">
-                <div class="flex items-center gap-2">
-                    <span id="videoCount">0 Video</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <!-- Shuffle Button -->
-                    <button id="btnShuffle" onclick="toggleShuffle()" class="hover:text-white transition-colors flex items-center gap-1" title="Acak Playlist">
-                        <i class="fa-solid fa-shuffle"></i> <span>Shuffle</span>
-                    </button>
-                    <!-- Repeat Button -->
-                    <button id="btnRepeat" onclick="toggleRepeat()" class="hover:text-white transition-colors flex items-center gap-1 text-suryared-500" title="Ulangi Playlist">
-                        <i class="fa-solid fa-rotate"></i> <span>Repeat <b id="repeatModeText">All</b></span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- RESULT ITEMS PLAYLIST CONTAINER -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-3" id="results">
-                <!-- Initial Empty/Welcome State -->
-                <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
-                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
-                        <i class="fa-brands fa-youtube text-3xl text-suryared-500 animate-pulse"></i>
+                    <!-- SEARCH HISTORY TAGS -->
+                    <div id="searchHistory" class="flex flex-wrap gap-1.5 mt-3 overflow-x-auto max-h-12 scrollbar-none">
+                        <!-- Dynamic tag generation here -->
                     </div>
-                    <h3 class="font-bold text-white mb-1">Cari Video YouTube</h3>
-                    <p class="text-xs text-gray-500">Masukkan kata kunci di kolom pencarian atas untuk memulai memutar playlist promosi TV Anda.</p>
                 </div>
-            </div>
-            
-            <!-- BOTTOM SYSTEM STATUS INFO -->
-            <div class="p-3 bg-black/40 border-t border-white/10 text-[10px] text-gray-500 flex justify-between items-center">
-                <span>SYSTEM ID: <strong class="text-gray-300">SURYA-TV43</strong></span>
-                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> SYSTEM ONLINE</span>
+
+                <!-- PLAYLIST CONTROLS -->
+                <div class="px-4 py-3 border-b border-white/10 bg-black/10 flex items-center justify-between text-xs font-semibold text-gray-400">
+                    <div class="flex items-center gap-2">
+                        <span id="videoCount">0 Video</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <!-- Shuffle Button -->
+                        <button id="btnShuffle" onclick="toggleShuffle()" class="hover:text-white transition-colors flex items-center gap-1" title="Acak Playlist">
+                            <i class="fa-solid fa-shuffle"></i> <span>Shuffle</span>
+                        </button>
+                        <!-- Repeat Button -->
+                        <button id="btnRepeat" onclick="toggleRepeat()" class="hover:text-white transition-colors flex items-center gap-1 text-suryared-500" title="Ulangi Playlist">
+                            <i class="fa-solid fa-rotate"></i> <span>Repeat <b id="repeatModeText">All</b></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RESULT ITEMS PLAYLIST CONTAINER -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-3" id="results">
+                    <!-- Initial Empty State -->
+                    <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
+                            <i class="fa-brands fa-youtube text-3xl text-suryared-500 animate-pulse"></i>
+                        </div>
+                        <h3 class="font-bold text-white mb-1">Cari Video YouTube</h3>
+                        <p class="text-xs text-gray-500">Masukkan kata kunci di kolom pencarian atas untuk memulai memutar playlist TV Anda.</p>
+                    </div>
+                </div>
+                
+                <!-- BOTTOM SYSTEM STATUS INFO -->
+                <div class="p-3 bg-black/40 border-t border-white/10 text-[10px] text-gray-500 flex justify-between items-center">
+                    <span>SYSTEM ID: <strong class="text-gray-300">SURYA-TV43</strong></span>
+                    <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> SYSTEM ONLINE</span>
+                </div>
             </div>
         </aside>
 
-        <!-- MAIN PLAYER AREA -->
-        <section id="playerArea" class="flex-1 bg-black relative flex flex-col justify-between">
+        <!-- MAIN PLAYER AREA (Fully unobstructed area for beautiful signage) -->
+        <section id="playerArea" class="flex-1 bg-black relative flex flex-col justify-between overflow-hidden">
             
-            <!-- PREMIUM PLAYER HUD OVERLAY (TOP-LEFT INFO & CLOCK) -->
-            <div id="playerHUD" class="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none opacity-100 transition-opacity duration-300">
-                <!-- Video Title & Details Metadata -->
-                <div class="glass-panel p-4 rounded-xl flex items-center gap-4 max-w-lg md:max-w-2xl border border-white/10">
-                    <div class="w-10 h-10 rounded-lg bg-suryared-600/20 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-circle-play text-suryared-500 text-lg animate-pulse"></i>
-                    </div>
-                    <div>
-                        <h4 id="currentVideoTitle" class="text-sm font-bold text-white line-clamp-1">Menunggu Video...</h4>
-                        <div class="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
-                            <span id="currentVideoChannel">No Channel</span>
-                            <span>•</span>
-                            <span id="playbackStatusText" class="text-emerald-400 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Siap Memutar
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Live Status & Clock HUD overlay for Smart TV Look -->
-                <div class="flex flex-col gap-2 items-end">
-                    <div id="hudClock" class="glass-panel px-4 py-2 rounded-xl text-lg font-extrabold text-white tracking-widest orbitron">
-                        12:00
-                    </div>
-                    <div id="hudStatusBadge" class="glass-panel px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-extrabold text-suryared-500 flex items-center gap-1.5 border border-suryared-500/20">
-                        <i class="fa-solid fa-circle text-[7px] animate-pulse"></i> DIGITAL SIGNAGE
-                    </div>
-                </div>
-            </div>
-
-            <!-- YOUTUBE PLAYER WRAPPER -->
+            <!-- YOUTUBE PLAYER WRAPPER (Auto Scales Resolution based on width changes) -->
             <div class="flex-1 w-full h-full relative" id="iframeContainer">
-                <div id="player"></div>
+                <div id="player" class="absolute inset-0 w-full h-full"></div>
                 
-                <!-- UNSELECTED/EMPTY VIDEO PLAYER SCREEN -->
+                <!-- UNSELECTED/EMPTY VIDEO STANDBY SCREEN -->
                 <div id="unselectedState" class="absolute inset-0 bg-darkbg flex flex-col items-center justify-center text-center z-10 transition-opacity duration-500">
                     <div class="p-8 max-w-md flex flex-col items-center">
                         <div class="relative w-32 h-32 flex items-center justify-center bg-white/5 rounded-3xl mb-6 border border-white/10">
@@ -341,59 +308,32 @@
                     </div>
                 </div>
             </div>
-
-            <!-- PLAYER CONTROLS FOOTER PANEL (HUD-Style) -->
-            <div id="playerControls" class="absolute bottom-4 left-4 right-4 z-20 glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-white/10 opacity-100 transition-opacity duration-300">
-                <!-- Playback Command Buttons -->
-                <div class="flex items-center gap-2">
-                    <button onclick="putarVideoSebelumnya()" class="w-10 h-10 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all flex items-center justify-center" title="Kembali (P)">
-                        <i class="fa-solid fa-backward-step"></i>
-                    </button>
-                    <button id="btnPlayPause" onclick="togglePlayPause()" class="w-12 h-12 bg-suryared-600 hover:bg-suryared-700 text-white rounded-xl transition-all flex items-center justify-center shadow-lg shadow-suryared-600/30" title="Mulai / Jeda (Space)">
-                        <i class="fa-solid fa-play text-lg"></i>
-                    </button>
-                    <button onclick="putarVideoBerikutnya()" class="w-10 h-10 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all flex items-center justify-center" title="Berikutnya (N)">
-                        <i class="fa-solid fa-forward-step"></i>
-                    </button>
-                    
-                    <!-- Interactive Sound Controls -->
-                    <div class="flex items-center gap-2 ml-4 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
-                        <button id="btnMute" onclick="toggleMute()" class="text-gray-400 hover:text-white transition-colors" title="Bungkam (M)">
-                            <i id="muteIcon" class="fa-solid fa-volume-high"></i>
-                        </button>
-                        <input 
-                            type="range" 
-                            id="volumeSlider" 
-                            min="0" 
-                            max="100" 
-                            value="80" 
-                            oninput="adjustVolume(this.value)" 
-                            class="w-20 accent-suryared-500 h-1 bg-gray-700 rounded-lg cursor-pointer"
-                        >
-                    </div>
-                </div>
-
-                <!-- Status & Schedules Indicator Overlay -->
-                <div class="flex items-center gap-4 text-xs font-semibold text-gray-400">
-                    <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        Next Promo: <span id="nextPromoTime" class="font-bold">--:--</span>
-                    </span>
-                    <span id="activePromoTrack" class="hidden md:inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg">
-                        <i class="fa-solid fa-music text-gray-500"></i> No Promo Audio Running
-                    </span>
-                </div>
-            </div>
         </section>
     </main>
 
-    <!-- FOOTER PANEL SYSTEM -->
-    <footer id="mainFooter" class="h-10 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0 hud-transition">
+    <!-- FOOTER PANEL SYSTEM (Always Visible & Holds Promo/Track Meta) -->
+    <footer id="mainFooter" class="h-12 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0">
+        <!-- Playlist Status Info -->
         <div class="flex items-center gap-4">
             <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-suryared-500 animate-pulse"></i> Suryatokoku Network</span>
             <span>•</span>
             <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400">0 Video</strong></span>
         </div>
+
+        <!-- RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS (Middle Positioned) -->
+        <div class="flex items-center gap-4">
+            <!-- Next Promo Badge -->
+            <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1 rounded-lg text-suryared-400 font-bold">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Next Promo: <span id="nextPromoTime" class="font-bold">--:--</span>
+            </span>
+            <!-- Active Promo Audio Track Meta -->
+            <span id="activePromoTrack" class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                <i class="fa-solid fa-music text-gray-400"></i> No Promo Audio Running
+            </span>
+        </div>
+
+        <!-- System Version & Volume info -->
         <div class="flex items-center gap-4">
             <span>Volume: <strong id="footerVolume" class="text-gray-400">80%</strong></span>
             <span>•</span>
@@ -486,25 +426,20 @@
         let repeatMode = 'all'; // 'all' | 'one' | 'none'
         let searchHistory = JSON.parse(localStorage.getItem('surtok_search_history')) || ['Suryatokoku', 'Komersial Indonesia', 'Promo Supermarket'];
 
-        // IDLE HIDE HUD TIMEOUT
+        // IDLE HIDE HUD TIMEOUT (Mute mouse cursor inside fullscreen mode only)
         let idleTimer;
-        const idleDelay = 5000; // 5 Detik non-aktif, HUD akan disembunyikan di TV
+        const idleDelay = 5000; // 5 Detik non-aktif kursor menghilang
+
+        // SIDEBAR 15-SECOND AUTO HIDE TIMEOUT
+        let sidebarTimer;
+        const sidebarDelay = 15000; // 15 Detik
+        let isSidebarOpen = true;
 
         // Tambahan State untuk Fitur Infinite Scroll Playlist
         let nextPageToken = "";
         let isLoadingMore = false;
         let currentKeyword = "";
 
-        /* ==========================================================================
-           UI ELEMENTS BINDING
-           ========================================================================== */
-        const statusHUD = document.getElementById("playbackStatusText");
-        const promoPlayer = document.getElementById("promoPlayer");
-        const promoOverlay = document.getElementById("promoOverlay");
-        const nextPromoTimeEl = document.getElementById("nextPromoTime");
-        const apiIndicator = document.getElementById("apiIndicator");
-        const apiStatusText = document.getElementById("apiStatusText");
-        
         /* ==========================================================================
            INITIALIZATION & YOUTUBE API SETUP
            ========================================================================== */
@@ -513,6 +448,7 @@
             initOfflineListeners();
             renderSearchHistory();
             setupIdleTimer();
+            setupSidebarTimer();
             updatePromoScheduleDisplay();
 
             // Pasang event scroll pada elemen playlist untuk mendeteksi scroll mendekati dasar (80%)
@@ -539,7 +475,6 @@
             };
             
             // Perbaikan Error 153/150: Kita harus memberikan Video ID default yang aman ('M7lc1UVf-VE') agar API berhasil diinisialisasi
-            // Tapi kita menjedanya (paused) di onPlayerReady sehingga tidak langsung diputar dan tetap tertutup penuh oleh overlay standby hitam
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
@@ -566,26 +501,11 @@
         }
 
         function onPlayerStateChange(event) {
-            const btnPlayPause = document.getElementById("btnPlayPause");
             if (event.data === YT.PlayerState.PLAYING) {
-                statusHUD.innerHTML = `<span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> Sedang Memutar`;
-                btnPlayPause.innerHTML = `<i class="fa-solid fa-pause text-lg"></i>`;
                 document.getElementById("unselectedState").style.opacity = "0";
                 document.getElementById("unselectedState").style.pointerEvents = "none";
-                
-                // Track detail video
-                const data = player.getVideoData();
-                if (data) {
-                    document.getElementById("currentVideoTitle").textContent = data.title;
-                    document.getElementById("currentVideoChannel").textContent = data.author;
-                }
-            } 
-            else if (event.data === YT.PlayerState.PAUSED) {
-                statusHUD.innerHTML = `<span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span> Dijeda`;
-                btnPlayPause.innerHTML = `<i class="fa-solid fa-play text-lg"></i>`;
             } 
             else if (event.data === YT.PlayerState.ENDED) {
-                statusHUD.innerHTML = `<span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span> Selesai`;
                 if (repeatMode === 'one') {
                     player.playVideo();
                 } else {
@@ -596,9 +516,6 @@
 
         function onPlayerError(event) {
             console.error("YouTube Player Error:", event.data);
-            
-            // Tampilkan error tanpa berpindah track (no auto-skip)
-            statusHUD.innerHTML = `<span class="text-suryared-500"><i class="fa-solid fa-circle-exclamation mr-1"></i> Gagal (Error ${event.data})</span>`;
             showToast(`Gagal memutar video ini. Silakan pilih video lain pada playlist.`, "error");
         }
 
@@ -801,13 +718,6 @@
                 activeCard.classList.add('active');
             }
 
-            // Tampilkan Detail Video Aktif
-            const activeVideoData = daftarVideo[currentIndex];
-            if (activeVideoData) {
-                document.getElementById("currentVideoTitle").textContent = activeVideoData.snippet.title;
-                document.getElementById("currentVideoChannel").textContent = activeVideoData.snippet.channelTitle;
-            }
-
             if (playNow) {
                 player.loadVideoById(videoId);
             } else {
@@ -827,7 +737,6 @@
                 if (repeatMode === 'all') {
                     currentIndex = 0; // Mulai lagi dari awal
                 } else {
-                    statusHUD.innerHTML = `Playlist Selesai`;
                     return;
                 }
             }
@@ -974,7 +883,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-suryared-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-suryared-600"></span>
                 </span>
-                <span class="text-suryared-500 font-extrabold text-[10px] animate-pulse">🔊 SEDANG PROMO: ${promo.audio}</span>
+                <span class="text-suryared-500 font-extrabold text-[10px] animate-pulse">🔊 PROMO: ${promo.audio}</span>
             `;
 
             // Mainkan Promo Audio sesuai file asli
@@ -1077,10 +986,13 @@
         });
 
         /* ==========================================================================
-           TV AUTO-HIDE MOUSE HUD LOGIC (CLEAN DISPLAY ON TV MONITOR)
+           STREAMING_CHUNK: Configuring the responsive auto-hide sidebar timer...
+           ========================================================================== */
+        /* ==========================================================================
+           TV AUTO-HIDE & SIDEBAR TIMERS (CLEAN DISPLAY CONFIGURATION)
            ========================================================================== */
         function setupIdleTimer() {
-            // Ketika kursor bergerak, munculkan HUD
+            // Deteksi interaksi untuk menyembunyikan kursor mouse saat mode layar penuh (fullscreen)
             document.addEventListener('mousemove', resetIdleTimer);
             document.addEventListener('mousedown', resetIdleTimer);
             document.addEventListener('keydown', resetIdleTimer);
@@ -1093,28 +1005,60 @@
             showHUD();
             clearTimeout(idleTimer);
             
-            // Jangan hide jika player sedang di-pause / menu dialog terbuka
             if (document.fullscreenElement) {
                 idleTimer = setTimeout(hideHUD, idleDelay);
             }
         }
 
         function hideHUD() {
-            document.getElementById("mainHeader").classList.add("-translate-y-full", "opacity-0");
-            document.getElementById("mainFooter").classList.add("translate-y-full", "opacity-0");
-            document.getElementById("playerControls").classList.add("opacity-0");
-            document.getElementById("playerHUD").classList.add("opacity-0");
-            
             document.body.style.cursor = "none";
         }
 
         function showHUD() {
-            document.getElementById("mainHeader").classList.remove("-translate-y-full", "opacity-0");
-            document.getElementById("mainFooter").classList.remove("translate-y-full", "opacity-0");
-            document.getElementById("playerControls").classList.remove("opacity-0");
-            document.getElementById("playerHUD").classList.remove("opacity-0");
-            
             document.body.style.cursor = "default";
+        }
+
+        // SIDEBAR 15s AUTO-HIDE SYSTEM
+        function setupSidebarTimer() {
+            // Segala bentuk interaksi pengguna di layar akan langsung memicu sidebar tampil kembali
+            document.addEventListener('mousemove', resetSidebarTimer);
+            document.addEventListener('mousedown', resetSidebarTimer);
+            document.addEventListener('keydown', resetSidebarTimer);
+            document.addEventListener('touchstart', resetSidebarTimer);
+
+            resetSidebarTimer();
+        }
+
+        function resetSidebarTimer() {
+            showSidebar();
+            clearTimeout(sidebarTimer);
+            sidebarTimer = setTimeout(hideSidebar, sidebarDelay);
+        }
+
+        function hideSidebar() {
+            if (isPromoRunning) return; // Pertahankan visual jika promo sedang tayang
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.add("w-0", "opacity-0", "pointer-events-none");
+            sidebar.classList.remove("w-[380px]", "opacity-100");
+            isSidebarOpen = false;
+        }
+
+        function showSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.remove("w-0", "opacity-0", "pointer-events-none");
+            sidebar.classList.add("w-[380px]", "opacity-100");
+            isSidebarOpen = true;
+        }
+
+        function toggleSidebar() {
+            if (isSidebarOpen) {
+                hideSidebar();
+                // Batalkan autotimer agar tidak auto show
+                clearTimeout(sidebarTimer);
+            } else {
+                showSidebar();
+                resetSidebarTimer();
+            }
         }
 
         /* ==========================================================================
@@ -1132,7 +1076,6 @@
                 const tglString = now.toLocaleDateString('id-ID', options);
 
                 document.getElementById("currentTime").textContent = `${jam}:${menit}:${detik}`;
-                document.getElementById("hudClock").textContent = `${jam}:${menit}`;
                 document.getElementById("currentDate").textContent = tglString.toUpperCase();
             }, 1000);
         }
@@ -1149,11 +1092,6 @@
                 netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-suryared-500/10 border border-suryared-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-suryared-400";
                 showToast("Koneksi Internet Terputus", "error");
             });
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById("sidebar");
-            sidebar.classList.toggle("-translate-x-full");
         }
 
         function toggleFullscreen() {
@@ -1218,7 +1156,7 @@
 
         /* ==========================================================================
            MODERN STATES INJECTION: SKELETON, EMPTY, ERROR, TOASTS
-           ========================================================================= */
+           ========================================================================== */
         function renderSkeletonLoading(target) {
             target.innerHTML = "";
             for (let i = 0; i < 4; i++) {
