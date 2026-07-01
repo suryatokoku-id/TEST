@@ -538,12 +538,10 @@
                 modestbranding: 1
             };
             
-            // Perbaikan Error 153/150: Kita harus memberikan Video ID default yang aman ('M7lc1UVf-VE') agar API berhasil diinisialisasi
-            // Tapi kita menjedanya (paused) di onPlayerReady sehingga tidak langsung diputar dan tetap tertutup penuh oleh overlay standby hitam
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
-                videoId: 'M7lc1UVf-VE', 
+                videoId: '', // Dikosongkan sesuai instruksi agar standby player saat load pertama
                 playerVars: playerVars,
                 events: {
                     onReady: onPlayerReady,
@@ -560,9 +558,6 @@
             
             // Atur Volume Sesuai Slider Default
             player.setVolume(currentVolume);
-
-            // Force pause di awal agar standby screen tetap bersih dan tidak langsung memutar video test
-            player.pauseVideo();
         }
 
         function onPlayerStateChange(event) {
@@ -1218,7 +1213,7 @@
 
         /* ==========================================================================
            MODERN STATES INJECTION: SKELETON, EMPTY, ERROR, TOASTS
-           ========================================================================= */
+           ========================================================================== */
         function renderSkeletonLoading(target) {
             target.innerHTML = "";
             for (let i = 0; i < 4; i++) {
