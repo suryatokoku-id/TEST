@@ -333,8 +333,8 @@
             </span>
         </div>
 
-        <!-- Right Side: Playback Controls & Video Duration Indicator (Stable Width) -->
-        <div class="flex items-center justify-end gap-4 shrink-0 min-w-[340px]">
+        <!-- Right Side: Playback Controls & Video Duration Indicator (Lebar disesuaikan agar stabil 1 baris) -->
+        <div class="flex items-center justify-end gap-4 shrink-0 min-w-[360px]">
             <!-- Playback Buttons -->
             <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-xl shrink-0">
                 <button onclick="putarVideoSebelumnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Kembali (P)">
@@ -348,8 +348,8 @@
                 </button>
             </div>
 
-            <!-- Indikator Durasi Video Aktif (Fixed Width with Tabular Numbers) -->
-            <div class="flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-gray-300 w-[170px] min-w-[170px] shrink-0">
+            <!-- Indikator Durasi Video Aktif (Wider Width 210px untuk jaminan stabil 1 baris) -->
+            <div class="flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-gray-300 w-[210px] min-w-[210px] shrink-0">
                 <i class="fa-solid fa-hourglass-half text-suryared-500 animate-pulse"></i>
                 <span id="videoDurationText" class="orbitron font-semibold tracking-wider text-xs tabular-nums">00:00:00 / 00:00:00</span>
             </div>
@@ -375,7 +375,7 @@
             { waktu:"08:00", audio:"Musik Surtok 07.mp3" },
             { waktu:"08:15", audio:"Musik Surtok 01.mp3" },
             { waktu:"08:30", audio:"Musik Surtok 02.mp3" },
-            { waktu:"22:28", audio:"Musik Surtok 03.mp3" },
+            { waktu:"08:45", audio:"Musik Surtok 03.mp3" },
             { waktu:"09:00", audio:"Audio Suryatokoku Musik.mp3" },
             { waktu:"09:15", audio:"Musik Surtok 04.mp3" },
             { waktu:"09:30", audio:"Musik Surtok 05.mp3" },
@@ -460,6 +460,14 @@
             renderSearchHistory();
             setupSidebarTimer();
             updatePromoScheduleDisplay();
+
+            // Pasang event listener enter key pada search input
+            const searchInput = document.getElementById("searchInput");
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === "Enter") {
+                    searchYoutube();
+                }
+            });
 
             // Pasang event scroll pada elemen playlist untuk mendeteksi scroll mendekati dasar (80%)
             const resultsDiv = document.getElementById("results");
@@ -1081,21 +1089,6 @@
             if (searchHistory.length > 5) searchHistory.pop(); // Maks 5 riwayat
             localStorage.setItem('surtok_search_history', JSON.stringify(searchHistory));
             renderSearchHistory();
-        }
-
-        function renderSearchHistory() {
-            const container = document.getElementById("searchHistory");
-            container.innerHTML = "";
-            searchHistory.forEach(history => {
-                const badge = document.createElement("button");
-                badge.className = "text-[10px] bg-white/5 hover:bg-suryared-600/30 hover:text-white px-2.5 py-1 rounded-full text-gray-400 font-semibold transition-colors duration-200 border border-white/5";
-                badge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[8px] mr-1"></i> ${history}`;
-                badge.onclick = () => {
-                    document.getElementById("searchInput").value = history;
-                    searchYoutube();
-                };
-                container.appendChild(badge);
-            });
         }
 
         // Format waktu robust ke format Jam:Menit:Detik (HH:MM:SS) yang presisi & stabil
