@@ -1,1263 +1,838 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Promosi Suryatokoku - Premium Advertising System</title>
-    
-    <!-- Tailwind CSS (Premium Styling & Responsiveness) -->
+    <title>Suryatokoku — Portal Cek Harga Modern</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- html5-qrcode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        /* Scanner laser */
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        .scanner-laser {
+            position: absolute;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(to right, transparent, #10b981, transparent);
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px #10b981;
+        }
+        
+        /* Reset style bawaan html5-qrcode */
+        #reader {
+            border: none !important;
+        }
+        #reader video {
+            border-radius: 1.25rem !important;
+            object-fit: cover !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        suryared: {
-                            50: '#fef2f2',
-                            100: '#fee2e2',
-                            500: '#ef4444',
-                            600: '#e53935', // Suryatokoku Red
-                            700: '#dc2626',
-                            900: '#7f1d1d',
-                        },
-                        darkbg: '#0F1115',
-                        darkcard: 'rgba(21, 23, 30, 0.7)',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
+        // Fungsi aman untuk menangani error pemuatan gambar tanpa merusak atribut HTML
+        function handleLogoError(img, type) {
+            img.onerror = null; // Menghindari loop tak terbatas jika SVG pun bermasalah
+            if (type === 'splash') {
+                img.outerHTML = `
+                    <div class="bg-gradient-to-tr from-[#ff4fa3] to-[#d93a83] text-white p-6 rounded-3xl mb-4 shadow-lg shadow-pink-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                `;
+            } else if (type === 'header') {
+                img.outerHTML = `
+                    <div class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-md mb-3 shadow-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                `;
             }
         }
     </script>
-    
-    <!-- Google Fonts & FontAwesome for Premium Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0F1115;
-            color: #f3f4f6;
-            overflow: hidden;
-            user-select: none;
-        }
-        
-        .orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
-        
-        /* Glassmorphism Classes */
-        .glass-panel {
-            background: rgba(15, 17, 21, 0.4); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .glass-card {
-            background: rgba(30, 33, 45, 0.5);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-2px) scale(1.02);
-            background: rgba(229, 57, 53, 0.15);
-            border-color: rgba(229, 57, 53, 0.4);
-            box-shadow: 0 10px 25px -5px rgba(229, 57, 53, 0.2);
-        }
-        
-        .glass-card.active {
-            background: rgba(229, 57, 53, 0.25);
-            border-color: rgba(229, 57, 53, 0.7);
-            box-shadow: 0 0 15px rgba(229, 57, 53, 0.3);
-        }
-        
-        /* Premium Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 17, 21, 0.5);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(229, 57, 53, 0.3);
-            border-radius: 9px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(229, 57, 53, 0.6);
-        }
-        
-        /* Equalizer Animation for Promos */
-        .equalizer-bar {
-            width: 8px;
-            height: 40px;
-            background-color: #e53935;
-            animation: bounce 1.2s ease-in-out infinite alternate;
-            border-radius: 4px;
-        }
-        .eq-1 { animation-delay: 0.1s; }
-        .eq-2 { animation-delay: 0.4s; }
-        .eq-3 { animation-delay: 0.2s; }
-        .eq-4 { animation-delay: 0.6s; }
-        .eq-5 { animation-delay: 0.3s; }
-        
-        @keyframes bounce {
-            0% { height: 10px; filter: brightness(0.8); }
-            100% { height: 80px; filter: brightness(1.2); }
-        }
-        
-        /* Pulse Indication */
-        .pulse-red {
-            box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7);
-            animation: pulse-red-anim 2s infinite;
-        }
-        @keyframes pulse-red-anim {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
-        }
-
-        /* Smooth Hide/Show Transition for Controls */
-        .hud-transition {
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-    </style>
 </head>
-<body class="h-screen w-screen flex flex-col antialiased select-none overflow-hidden bg-darkbg">
+<body class="text-slate-800 min-h-screen pb-16 bg-[#fafbfc] transition-colors duration-300">
 
-    <!-- OVERLAY AUDIO PROMOSI FULLSCREEN (GLASSMORPHISM BLUR) -->
-    <div id="promoOverlay" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 backdrop-blur-2xl transition-all duration-500 opacity-0 pointer-events-none">
-        <div class="text-center p-8 max-w-2xl flex flex-col items-center">
-            <!-- Pulsing Speaker Icon & Equalizer -->
-            <div class="relative w-40 h-40 flex items-center justify-center bg-suryared-600/20 rounded-full mb-8 pulse-red">
-                <i class="fa-solid fa-volume-high text-6xl text-suryared-500"></i>
+    <!-- PREMIUM SPLASH LOADING SCREEN -->
+    <div id="splash-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
+        <div class="relative flex flex-col items-center text-center px-6 max-w-sm">
+            <!-- Pulsing Elegant Ring -->
+            <div class="absolute w-36 h-36 bg-pink-100/60 rounded-full animate-ping"></div>
+            
+            <!-- Modern Store Logo Container (Menggunakan Gambar Logo Surtok 3D) -->
+            <div class="relative mb-6">
+                <img src="Logo%20Surtok%203D.png" 
+                     onerror="handleLogoError(this, 'splash')"
+                     class="h-20 w-20 object-contain drop-shadow-md">
             </div>
             
-            <div class="flex items-end justify-center gap-2 h-24 mb-8">
-                <div class="equalizer-bar eq-1"></div>
-                <div class="equalizer-bar eq-2"></div>
-                <div class="equalizer-bar eq-3"></div>
-                <div class="equalizer-bar eq-4"></div>
-                <div class="equalizer-bar eq-5"></div>
+            <!-- Brand & Status Loading Text -->
+            <h2 class="text-slate-900 text-2xl font-extrabold tracking-tight mb-2">SURYATOKOKU</h2>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-[11px] font-semibold text-slate-500 mb-6">
+                <span id="splash-pulse" class="w-1.5 h-1.5 rounded-full bg-[#ff4fa3] animate-pulse"></span>
+                <span id="splash-badge-text">Sinkronisasi Data Produk...</span>
             </div>
-            
-            <span class="text-xs uppercase tracking-widest text-suryared-500 font-bold mb-2">SURYATOKOKU BROADCAST SYSTEM</span>
-            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">Sedang Memutar Promosi</h1>
-            <p id="promoFileName" class="text-gray-400 font-medium mb-8 text-lg italic">Audio Suryatokoku Musik.mp3</p>
-            
-            <!-- Custom Progress Bar for Audio -->
-            <div class="w-80 md:w-96 bg-gray-800 h-2 rounded-full overflow-hidden mb-2">
-                <div id="promoProgressBar" class="bg-suryared-500 h-full w-0 transition-all duration-300"></div>
-            </div>
-            <div class="w-full flex justify-between text-xs text-gray-500 px-1">
-                <span id="promoCurrentTime">00:00</span>
-                <span id="promoDuration">00:00</span>
-            </div>
+            <p id="splash-status" class="text-slate-400 text-xs font-medium">Menghubungkan ke database pusat secara aman</p>
         </div>
     </div>
 
-    <!-- MODAL SETTINGS API KEY (Untuk Masalah Kuota API YouTube Habis) -->
-    <div id="apiKeyModal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
-        <div class="bg-[#15171E] border border-white/10 p-6 rounded-2xl w-96 max-w-[90%] shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-key text-suryared-500"></i> API Key YouTube
-            </h3>
-            <p class="text-xs text-gray-400 mb-4 leading-relaxed">
-                Jika kuota pencarian habis atau tidak muncul hasil, masukkan API Key YouTube Anda sendiri di bawah ini untuk menjaga TV tetap online.
-            </p>
-            <input 
-                type="text" 
-                id="apiKeyInput" 
-                class="w-full bg-white/5 border border-white/10 focus:border-suryared-500 rounded-xl py-2.5 px-4 text-sm font-medium text-white placeholder-gray-500 outline-none transition-all mb-4" 
-                placeholder="Masukkan API Key (AIzaSy...)"
-            >
-            <div class="flex justify-end gap-2 text-xs font-bold">
-                <button onclick="closeApiKeyModal()" class="bg-white/5 hover:bg-white/10 text-gray-400 px-4 py-2.5 rounded-lg transition-colors">
-                    Batal
-                </button>
-                <button onclick="saveApiKey()" class="bg-suryared-600 hover:bg-suryared-700 text-white px-4 py-2.5 rounded-lg transition-colors">
-                    Simpan
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN HEADER -->
-    <header id="mainHeader" class="h-20 glass-panel border-b border-white/10 px-6 flex items-center justify-between z-40 shrink-0">
-        <!-- Logo & Title Info -->
-        <div class="flex items-center gap-4">
-            <!-- Logo Surtok 3D.png -->
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/40 shrink-0">
-                <img src="Logo Surtok 3D.png" alt="Logo Surtok 3D" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://placehold.co/48x48/ef4444/ffffff?text=ST';">
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-extrabold tracking-tight text-white uppercase">Suryatokoku</h1>
-                    <span class="bg-suryared-600 text-white font-extrabold text-[9px] px-1.5 py-0.5 rounded tracking-wide uppercase">TV</span>
-                </div>
-                <p class="text-xs text-gray-400 font-medium">by Operational Development</p>
-            </div>
-        </div>
-
-        <!-- Right Side Widgets (Clock, Network Status, API Status) -->
-        <div class="flex items-center gap-6 shrink-0">
-            <!-- Connection Status (Stable Width) -->
-            <div class="hidden sm:flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 shrink-0 min-w-[85px]">
-                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
-                <span id="internetStatus">Online</span>
-            </div>
-            
-            <!-- YouTube API Indicator (Stable Width) -->
-            <div id="apiIndicator" class="hidden md:flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-400 shrink-0 min-w-[100px]">
-                <i class="fa-brands fa-youtube"></i>
-                <span id="apiStatusText">API Ready</span>
-            </div>
-
-            <!-- Digital Clock Realtime dengan ruang lebar tetap agar tidak bergeser -->
-            <div class="flex flex-col items-end border-l border-white/10 pl-6 w-[180px] min-w-[180px] shrink-0">
-                <span id="currentTime" class="orbitron text-2xl font-bold tracking-wider text-white tabular-nums">12:00:00</span>
-                <span id="currentDate" class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-0.5 whitespace-nowrap">MINGGU, 28 JUNI 2026</span>
-            </div>
-
-            <!-- Sidebar Toggle, API Key, & Fullscreen Buttons -->
-            <div class="flex items-center gap-2 pl-4 border-l border-white/10 shrink-0">
-                <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Playlist">
-                    <i class="fa-solid fa-list-ul"></i>
-                </button>
-                <button onclick="openApiKeyModal()" class="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-suryared-500 rounded-lg flex items-center justify-center text-white transition-colors" title="Pengaturan API Key YouTube">
-                    <i class="fa-solid fa-key"></i>
-                </button>
-                <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-suryared-500 rounded-lg flex items-center justify-center text-white transition-colors" title="Toggle Fullscreen (F)">
-                    <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- CONTENT WRAPPER -->
-    <main class="flex-1 flex overflow-hidden relative">
-
-        <!-- SIDEBAR: YOUTUBE SEARCH & PLAYLIST PLAYING -->
-        <aside id="sidebar" class="w-[380px] shrink-0 glass-panel border-r border-white/10 flex flex-col z-30 transition-all duration-500 ease-in-out overflow-hidden relative h-full">
-            <div class="w-[380px] flex flex-col h-full shrink-0">
-                
-                <!-- SEARCH BANNER & INPUT -->
-                <div class="p-4 border-b border-white/10 bg-black/20">
-                    <div class="relative flex items-center gap-2">
-                        <div class="relative flex-1">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input 
-                                type="text" 
-                                id="searchInput" 
-                                class="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-suryared-500/50 rounded-xl py-3 pl-10 pr-4 text-sm font-medium text-white placeholder-gray-400 outline-none transition-all" 
-                                placeholder="Cari video YouTube..."
-                            >
-                        </div>
-                        <button 
-                            onclick="searchYoutube()" 
-                            class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-sm px-4 py-3 rounded-xl transition-all flex items-center gap-2"
-                        >
-                            <span>Cari</span>
-                        </button>
-                    </div>
-
-                    <!-- SEARCH HISTORY TAGS -->
-                    <div id="searchHistory" class="flex flex-wrap gap-1.5 mt-3 overflow-x-auto max-h-12 scrollbar-none">
-                        <!-- Dynamic tag generation here -->
-                    </div>
-                </div>
-
-                <!-- PLAYLIST CONTROLS -->
-                <div class="px-4 py-3 border-b border-white/10 bg-black/10 flex items-center justify-between text-xs font-semibold text-gray-400">
-                    <div class="flex items-center gap-2">
-                        <span id="videoCount">0 Video</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <!-- Shuffle Button -->
-                        <button id="btnShuffle" onclick="toggleShuffle()" class="hover:text-white transition-colors flex items-center gap-1" title="Acak Playlist">
-                            <i class="fa-solid fa-shuffle"></i> <span>Shuffle</span>
-                        </button>
-                        <!-- Repeat Button -->
-                        <button id="btnRepeat" onclick="toggleRepeat()" class="hover:text-white transition-colors flex items-center gap-1 text-suryared-500" title="Ulangi Playlist">
-                            <i class="fa-solid fa-rotate"></i> <span>Repeat <b id="repeatModeText">All</b></span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- RESULT ITEMS PLAYLIST CONTAINER -->
-                <div class="flex-1 overflow-y-auto p-4 space-y-3" id="results">
-                    <!-- Initial Empty/Welcome State -->
-                    <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
-                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
-                            <i class="fa-brands fa-youtube text-3xl text-suryared-500 animate-pulse"></i>
-                        </div>
-                        <h3 class="font-bold text-white mb-1">Cari Video YouTube</h3>
-                        <p class="text-xs text-gray-500">Masukkan kata kunci di kolom pencarian atas untuk memulai memutar playlist TV Anda.</p>
-                    </div>
-                </div>
-                
-                <!-- BOTTOM SYSTEM STATUS INFO -->
-                <div class="p-3 bg-black/40 border-t border-white/10 text-[10px] text-gray-500 flex justify-between items-center">
-                    <span>SYSTEM BY: <strong class="text-gray-300">awilistrators</strong></span>
-                    <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> SYSTEM ONLINE</span>
-                </div>
-            </div>
-        </aside>
-
-        <!-- MAIN PLAYER AREA (Fully unobstructed area for beautiful signage) -->
-        <section id="playerArea" class="flex-1 bg-black relative flex flex-col justify-between overflow-hidden">
-            
-            <!-- YOUTUBE PLAYER WRAPPER -->
-            <div class="flex-1 w-full h-full relative" id="iframeContainer">
-                <div id="player" class="absolute inset-0 w-full h-full"></div>
-                
-                <!-- UNSELECTED/EMPTY VIDEO STANDBY SCREEN -->
-                <div id="unselectedState" class="absolute inset-0 bg-darkbg flex flex-col items-center justify-center text-center z-10 transition-opacity duration-500">
-                    <div class="p-8 max-w-md flex flex-col items-center">
-                        <div class="relative w-32 h-32 flex items-center justify-center bg-white/5 rounded-3xl mb-6 border border-white/10">
-                            <i class="fa-solid fa-tv text-5xl text-gray-500"></i>
-                            <div class="absolute -top-1.5 -right-1.5 bg-suryared-600 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white pulse-red">
-                                !
-                            </div>
-                        </div>
-                        <h2 class="text-2xl font-black text-white tracking-tight mb-2">Suryatokoku Signage Active</h2>
-                        <p class="text-sm text-gray-400 leading-relaxed">Sistem monitor periklanan aktif. Silakan cari dan pilih video YouTube melalui menu sidebar untuk memulai penyiaran komersial.</p>
-                        
-                        <div class="mt-6 flex flex-wrap gap-2 justify-center">
-                            <span class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400"><i class="fa-solid fa-keyboard mr-1.5"></i> F (Fullscreen)</span>
-                            <span class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400"><i class="fa-solid fa-keyboard mr-1.5"></i> Space (Pause)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- FOOTER PANEL SYSTEM -->
-    <footer id="mainFooter" class="h-14 glass-panel border-t border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 z-40 shrink-0">
-        <!-- Left Side: Playlist Status Info (Stable Width) -->
-        <div class="flex items-center gap-4 shrink-0 min-w-[200px]">
-            <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-suryared-500 animate-pulse"></i> Suryatokoku </span>
-            <span>•</span>
-            <span>Playlist: <strong id="footerPlaylistCount" class="text-gray-400 font-bold">0 Video</strong></span>
-        </div>
-
-        <!-- Middle Side: RELOCATED "NEXT PROMO" & CURRENT TRACK STATUS -->
-        <div class="flex items-center justify-center gap-4 shrink-0 min-w-[340px]">
-            <!-- Next Promo Badge -->
-            <span class="flex items-center gap-1.5 bg-suryared-600/10 border border-suryared-600/20 px-2.5 py-1.5 rounded-lg text-suryared-400 font-bold shrink-0">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                Next Promo: <span id="nextPromoTime" class="font-bold">--:--</span>
-            </span>
-            <!-- Active Promo Audio Track Meta -->
-            <span id="activePromoTrack" class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg shrink-0">
-                <i class="fa-solid fa-music text-gray-400"></i> No Promo Audio Running
-            </span>
-        </div>
-
-        <!-- Right Side: Playback Controls & Video Duration Indicator (Lebar disesuaikan agar stabil 1 baris) -->
-        <div class="flex items-center justify-end gap-4 shrink-0 min-w-[360px]">
-            <!-- Playback Buttons -->
-            <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-xl shrink-0">
-                <button onclick="putarVideoSebelumnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Kembali (P)">
-                    <i class="fa-solid fa-backward-step text-sm"></i>
-                </button>
-                <button id="btnPlayPause" onclick="togglePlayPause()" class="w-8 h-8 bg-suryared-600 hover:bg-suryared-700 text-white rounded-lg flex items-center justify-center transition-colors shadow-sm shadow-suryared-600/30" title="Mulai / Jeda (Space)">
-                    <i id="btnPlayPauseIcon" class="fa-solid fa-play text-xs"></i>
-                </button>
-                <button onclick="putarVideoBerikutnya()" class="w-8 h-8 hover:bg-white/10 hover:text-white rounded-lg flex items-center justify-center text-gray-400 transition-colors" title="Berikutnya (N)">
-                    <i class="fa-solid fa-forward-step text-sm"></i>
-                </button>
-            </div>
-
-            <!-- Indikator Durasi Video Aktif (Wider Width 210px untuk jaminan stabil 1 baris) -->
-            <div class="flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-gray-300 w-[210px] min-w-[210px] shrink-0">
-                <i class="fa-solid fa-hourglass-half text-suryared-500 animate-pulse"></i>
-                <span id="videoDurationText" class="orbitron font-semibold tracking-wider text-xs tabular-nums">00:00:00 / 00:00:00</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- AUDIO PLAYER -->
-    <audio id="promoPlayer" preload="auto"></audio>
-
-    <!-- YouTube IFrame API Library -->
-    <script src="https://www.youtube.com/iframe_api"></script>
-
-    <script>
-        /* ==========================================================================
-           KONFIGURASI UTAMA & JADWAL PROMOSI
-           ========================================================================== */
+    <!-- MAIN APP CONTAINER -->
+    <div class="max-w-md mx-auto px-4 pt-6">
         
-        // Default API Key cadangan
-        const DEFAULT_API_KEY = "AIzaSyCQEzM2H5PgmmQND9TN6KcvEI7zBbE1xdM";
-
-        // Jadwal Promosi Audio (Sesuai aslinya)
-        const jadwalPromo = [
-            { waktu:"08:00", audio:"Musik Surtok 07.mp3" },
-            { waktu:"08:15", audio:"Musik Surtok 01.mp3" },
-            { waktu:"08:30", audio:"Musik Surtok 02.mp3" },
-            { waktu:"08:45", audio:"Musik Surtok 03.mp3" },
-            { waktu:"09:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"09:15", audio:"Musik Surtok 04.mp3" },
-            { waktu:"09:30", audio:"Musik Surtok 05.mp3" },
-            { waktu:"09:45", audio:"Musik Surtok 06.mp3" },
-            { waktu:"10:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"10:15", audio:"Musik Surtok 07.mp3" },
-            { waktu:"10:30", audio:"Musik Surtok 01.mp3" },
-            { waktu:"10:45", audio:"Musik Surtok 02.mp3" },
-            { waktu:"11:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"11:15", audio:"Musik Surtok 03.mp3" },
-            { waktu:"11:30", audio:"Musik Surtok 04.mp3" },
-            { waktu:"11:45", audio:"Musik Surtok 05.mp3" },
-            { waktu:"12:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"12:15", audio:"Musik Surtok 06.mp3" },
-            { waktu:"12:30", audio:"Musik Surtok 07.mp3" },
-            { waktu:"12:45", audio:"Musik Surtok 01.mp3" },
-            { waktu:"13:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"13:15", audio:"Musik Surtok 02.mp3" },
-            { waktu:"13:30", audio:"Musik Surtok 03.mp3" },
-            { waktu:"13:45", audio:"Musik Surtok 04.mp3" },
-            { waktu:"14:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"14:15", audio:"Musik Surtok 05.mp3" },
-            { waktu:"14:30", audio:"Musik Surtok 06.mp3" },
-            { waktu:"14:45", audio:"Musik Surtok 07.mp3" },
-            { waktu:"15:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"15:15", audio:"Musik Surtok 01.mp3" },
-            { waktu:"15:30", audio:"Musik Surtok 02.mp3" },
-            { waktu:"15:45", audio:"Musik Surtok 03.mp3" },
-            { waktu:"16:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"16:15", audio:"Musik Surtok 04.mp3" },
-            { waktu:"16:30", audio:"Musik Surtok 05.mp3" },
-            { waktu:"16:45", audio:"Musik Surtok 06.mp3" },
-            { waktu:"17:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"17:15", audio:"Musik Surtok 07.mp3" },
-            { waktu:"17:30", audio:"Musik Surtok 01.mp3" },
-            { waktu:"17:45", audio:"Musik Surtok 02.mp3" },
-            { waktu:"18:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"18:15", audio:"Musik Surtok 03.mp3" },
-            { waktu:"18:30", audio:"Musik Surtok 04.mp3" },
-            { waktu:"18:45", audio:"Musik Surtok 05.mp3" },
-            { waktu:"19:00", audio:"Audio Suryatokoku Musik.mp3" },
-            { waktu:"19:15", audio:"Musik Surtok 06.mp3" },
-            { waktu:"19:30", audio:"Musik Surtok 07.mp3" },
-            { waktu:"19:45", audio:"15 Menit sebelum tutup Surtok.mp3" }
-        ];
-
-        /* ==========================================================================
-           STATE MANAGEMENT
-           ========================================================================== */
-        let player;
-        let playerReady = false;
-        let isMuted = false;
-        let currentVolume = 80;
-        let currentVideoId = "";
-        let lastPlayed = "";
-        let daftarVideo = [];
-        let originalDaftarVideo = []; 
-        let currentIndex = 0;
-        let isPromoRunning = false;
-        
-        // System Options
-        let isShuffle = false;
-        let repeatMode = 'all'; 
-        let searchHistory = JSON.parse(localStorage.getItem('surtok_search_history')) || ['Suryatokoku', 'Komersial Indonesia', 'Promo Supermarket'];
-
-        // SIDEBAR 15-SECOND AUTO HIDE TIMEOUT
-        let sidebarTimer;
-        const sidebarDelay = 15000; 
-        let isSidebarOpen = true;
-
-        // Tambahan State untuk Fitur Infinite Scroll Playlist
-        let nextPageToken = "";
-        let isLoadingMore = false;
-        let currentKeyword = "";
-
-        // Fungsi Membaca API Key (Utama atau Kustom)
-        function getApiKey() {
-            return localStorage.getItem('surtok_api_key') || DEFAULT_API_KEY;
-        }
-
-        /* ==========================================================================
-           INITIALIZATION & YOUTUBE API SETUP
-           ========================================================================== */
-        window.addEventListener('DOMContentLoaded', () => {
-            initClock();
-            initOfflineListeners();
-            renderSearchHistory();
-            setupSidebarTimer();
-            updatePromoScheduleDisplay();
-            loadSavedPlaylist();
-
-            // Pasang event listener enter key pada search input
-            const searchInput = document.getElementById("searchInput");
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === "Enter") {
-                    searchYoutube();
-                }
-            });
-
-            // Pasang event scroll pada elemen playlist untuk mendeteksi scroll mendekati dasar (80%)
-            const resultsDiv = document.getElementById("results");
-            resultsDiv.addEventListener('scroll', () => {
-                if (isPromoRunning) return; 
-                
-                const threshold = 0.8; 
-                const currentScrollPosition = resultsDiv.scrollTop + resultsDiv.clientHeight;
-                const maxScrollHeight = resultsDiv.scrollHeight;
-
-                if (currentScrollPosition >= maxScrollHeight * threshold) {
-                    loadMoreVideos();
-                }
-            });
-        });
-
-        // Memulihkan playlist terakhir secara otomatis saat direfresh
-        function loadSavedPlaylist() {
-            const saved = localStorage.getItem('surtok_saved_playlist');
-            if (saved) {
-                try {
-                    daftarVideo = JSON.parse(saved);
-                    originalDaftarVideo = [...daftarVideo];
-                    if (daftarVideo.length > 0) {
-                        tampilkanHasil(daftarVideo);
-                        currentIndex = 0;
-                        loadVideo(daftarVideo[0].id.videoId, false);
-                    }
-                } catch (e) {
-                    console.error("Gagal memuat saved playlist:", e);
-                }
-            }
-        }
-
-        function onYouTubeIframeAPIReady() {
-            const playerVars = {
-                autoplay: 1,
-                controls: 1,
-                rel: 0,
-                modestbranding: 1
-            };
+        <!-- HEADER BRAND -->
+        <header class="bg-gradient-to-r from-[#ff4fa3] to-[#e03a89] rounded-3xl p-6 text-white shadow-xl shadow-pink-500/10 mb-5 relative overflow-hidden">
+            <!-- Decorative blur background items -->
+            <div class="absolute -right-12 -bottom-12 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+            <div class="absolute -left-6 -top-6 w-24 h-24 bg-pink-300/20 rounded-full blur-lg"></div>
             
-            player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: 'M7lc1UVf-VE', 
-                playerVars: playerVars,
-                events: {
-                    onReady: onPlayerReady,
-                    onStateChange: onPlayerStateChange,
-                    onError: onPlayerError
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            playerReady = true;
-            
-            // Deklarasi Elemen DOM Secara Aman untuk Mencegah Reference Error
-            const apiStatusText = document.getElementById("apiStatusText");
-            const apiIndicator = document.getElementById("apiIndicator");
-
-            if (apiStatusText && apiIndicator) {
-                apiStatusText.innerHTML = "API Active";
-                apiIndicator.className = "hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 shrink-0 min-w-[100px]";
-            }
-            
-            player.setVolume(currentVolume);
-            player.pauseVideo();
-        }
-
-        function onPlayerStateChange(event) {
-            const btnIcon = document.getElementById("btnPlayPauseIcon");
-            if (event.data === YT.PlayerState.PLAYING) {
-                if (btnIcon) btnIcon.className = "fa-solid fa-pause text-xs";
-                document.getElementById("unselectedState").style.opacity = "0";
-                document.getElementById("unselectedState").style.pointerEvents = "none";
-            } 
-            else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
-                if (btnIcon) btnIcon.className = "fa-solid fa-play text-xs";
-            }
-            else if (event.data === YT.PlayerState.ENDED) {
-                if (btnIcon) btnIcon.className = "fa-solid fa-play text-xs";
-                if (repeatMode === 'one') {
-                    player.playVideo();
-                } else {
-                    putarVideoBerikutnya();
-                }
-            }
-        }
-
-        function onPlayerError(event) {
-            console.error("YouTube Player Error:", event.data);
-            showToast(`Gagal memutar video ini. Silakan pilih video lain pada playlist.`, "error");
-        }
-
-        /* ==========================================================================
-           YOUTUBE SEARCH & CORE MUSIC PLAYLIST LOGIC
-           ========================================================================== */
-        async function searchYoutube() {
-            const keyword = document.getElementById("searchInput").value.trim();
-            if (!keyword) {
-                showToast("Masukkan kata kunci pencarian!", "warning");
-                return;
-            }
-
-            addSearchHistory(keyword);
-            const resultsDiv = document.getElementById("results");
-            renderSkeletonLoading(resultsDiv);
-
-            nextPageToken = "";
-            currentKeyword = keyword;
-            isLoadingMore = false;
-
-            try {
-                const activeKey = getApiKey();
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(keyword)}&key=${activeKey}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-
-                if (!data.items || data.items.length === 0) {
-                    renderEmptyState(resultsDiv);
-                    return;
-                }
-
-                // Filter data untuk mengamankan hanya format video valid
-                const validItems = data.items.filter(item => item.id && item.id.videoId);
-                
-                daftarVideo = validItems;
-                originalDaftarVideo = [...validItems]; 
-                nextPageToken = data.nextPageToken || ""; 
-
-                localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
-                
-                tampilkanHasil(daftarVideo);
-                
-                currentIndex = 0;
-                loadVideo(daftarVideo[0].id.videoId, true);
-
-            } catch (err) {
-                console.error(err);
-                renderErrorState(resultsDiv, err.message);
-            }
-        }
-
-        // Fungsi Load More untuk memuat video berikutnya secara otomatis
-        async function loadMoreVideos() {
-            if (isLoadingMore || !nextPageToken || !currentKeyword) return;
-
-            isLoadingMore = true;
-            const resultsDiv = document.getElementById("results");
-
-            const loadIndicator = document.createElement("div");
-            loadIndicator.id = "infiniteLoadIndicator";
-            loadIndicator.className = "text-center py-4 border-t border-white/5 text-xs text-gray-400 mt-2 flex flex-col items-center justify-center gap-2 shrink-0";
-            loadIndicator.innerHTML = `
-                <i class="fa-solid fa-spinner animate-spin text-suryared-500 text-sm"></i>
-                <span>Loading video berikutnya...</span>
-            `;
-            resultsDiv.appendChild(loadIndicator);
-            resultsDiv.scrollTop = resultsDiv.scrollHeight; 
-
-            try {
-                const activeKey = getApiKey();
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(currentKeyword)}&key=${activeKey}&pageToken=${nextPageToken}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                const existingIndicator = document.getElementById("infiniteLoadIndicator");
-                if (existingIndicator) existingIndicator.remove();
-
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-
-                if (data.items && data.items.length > 0) {
-                    const validItems = data.items.filter(item => item.id && item.id.videoId);
-                    const existingIds = new Set(daftarVideo.map(item => item.id.videoId));
-                    const filteredNewItems = validItems.filter(item => !existingIds.has(item.id.videoId));
-
-                    if (filteredNewItems.length > 0) {
-                        daftarVideo.push(...filteredNewItems);
-                        originalDaftarVideo.push(...filteredNewItems);
-
-                        localStorage.setItem('surtok_saved_playlist', JSON.stringify(daftarVideo));
-
-                        const currentScrollTop = resultsDiv.scrollTop;
-                        tampilkanHasil(daftarVideo);
-                        resultsDiv.scrollTop = currentScrollTop;
-                    }
-                }
-
-                nextPageToken = data.nextPageToken || ""; 
-                isLoadingMore = false;
-
-            } catch (err) {
-                console.error("Gagal memuat video berikutnya:", err);
-                const existingIndicator = document.getElementById("infiniteLoadIndicator");
-                if (existingIndicator) existingIndicator.remove();
-
-                const errorIndicator = document.createElement("div");
-                errorIndicator.id = "infiniteErrorIndicator";
-                errorIndicator.className = "text-center py-3 bg-suryared-900/20 border border-suryared-500/30 rounded-xl text-xs text-suryared-400 font-semibold mt-2 mx-2 animate-pulse";
-                errorIndicator.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gagal mengambil data berikutnya.`;
-                resultsDiv.appendChild(errorIndicator);
-                resultsDiv.scrollTop = resultsDiv.scrollHeight;
-
-                setTimeout(() => {
-                    const existingErr = document.getElementById("infiniteErrorIndicator");
-                    if (existingErr) existingErr.remove();
-                }, 4000);
-
-                isLoadingMore = false;
-            }
-        }
-
-        function tampilkanHasil(items) {
-            const resultsDiv = document.getElementById("results");
-            resultsDiv.innerHTML = "";
-            
-            document.getElementById("videoCount").textContent = `${items.length} Video`;
-            document.getElementById("footerPlaylistCount").textContent = `${items.length} Video`;
-
-            items.forEach((item, index) => {
-                const videoId = item.id.videoId;
-                const title = item.snippet.title;
-                const channel = item.snippet.channelTitle;
-                const thumb = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : item.snippet.thumbnails.default.url;
-                const isPlaying = (index === currentIndex && currentVideoId === videoId);
-
-                const card = document.createElement("div");
-                card.className = `glass-card p-3 rounded-2xl flex gap-3 cursor-pointer relative overflow-hidden ${isPlaying ? 'active' : ''}`;
-                card.id = `card-${videoId}`;
-                
-                card.innerHTML = `
-                    <div class="relative w-28 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-900">
-                        <img src="${thumb}" class="w-full h-full object-cover">
-                        ${isPlaying ? `
-                            <div class="absolute inset-0 bg-suryared-600/80 backdrop-blur-sm flex items-center justify-center">
-                                <span class="text-white text-xs font-bold uppercase tracking-widest animate-pulse"><i class="fa-solid fa-play mr-1"></i> Playing</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="flex flex-col justify-between py-1 flex-1">
-                        <div>
-                            <h4 class="text-xs font-bold text-white line-clamp-2 leading-snug hover:text-suryared-500">${title}</h4>
-                            <p class="text-[10px] text-gray-400 font-semibold mt-1"><i class="fa-solid fa-circle-check text-suryared-500 mr-1 text-[8px]"></i>${channel}</p>
-                        </div>
-                        <span class="text-[9px] text-gray-500">Live TV Broadcast</span>
-                    </div>
-                `;
-
-                card.onclick = () => {
-                    currentIndex = index;
-                    loadVideo(videoId, true);
-                };
-
-                resultsDiv.appendChild(card);
-            });
-        }
-
-        function loadVideo(videoId, playNow = true) {
-            currentVideoId = videoId;
-            if (!playerReady || !player) return;
-
-            const allCards = document.querySelectorAll('.glass-card');
-            allCards.forEach(card => card.classList.remove('active'));
-            
-            const activeCard = document.getElementById(`card-${videoId}`);
-            if (activeCard) {
-                activeCard.classList.add('active');
-            }
-
-            if (playNow) {
-                player.loadVideoById(videoId);
-            } else {
-                player.cueVideoById(videoId);
-            }
-            
-            document.getElementById("unselectedState").style.opacity = "0";
-            document.getElementById("unselectedState").style.pointerEvents = "none";
-            scrollToActiveVideo();
-        }
-
-        function putarVideoBerikutnya() {
-            if (daftarVideo.length === 0) return;
-
-            currentIndex++;
-            if (currentIndex >= daftarVideo.length) {
-                if (repeatMode === 'all') {
-                    currentIndex = 0; 
-                } else {
-                    return;
-                }
-            }
-
-            const nextVideo = daftarVideo[currentIndex];
-            loadVideo(nextVideo.id.videoId, true);
-            tampilkanHasil(daftarVideo); 
-        }
-
-        function putarVideoSebelumnya() {
-            if (daftarVideo.length === 0) return;
-
-            currentIndex--;
-            if (currentIndex < 0) {
-                currentIndex = daftarVideo.length - 1; 
-            }
-
-            const prevVideo = daftarVideo[currentIndex];
-            loadVideo(prevVideo.id.videoId, true);
-            tampilkanHasil(daftarVideo); 
-        }
-
-        /* ==========================================================================
-           CONTROLS: SHUFFLE, REPEAT, VOLUME, PLAYBACK
-           ========================================================================== */
-        function togglePlayPause() {
-            if (!playerReady) return;
-            const state = player.getPlayerState();
-            if (state === YT.PlayerState.PLAYING) {
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-            }
-        }
-
-        function toggleShuffle() {
-            isShuffle = !isShuffle;
-            const btn = document.getElementById("btnShuffle");
-            if (isShuffle) {
-                btn.classList.add("text-suryared-500");
-                daftarVideo = [...daftarVideo].sort(() => Math.random() - 0.5);
-                showToast("Playlist diacak", "success");
-            } else {
-                btn.classList.remove("text-suryared-500");
-                daftarVideo = [...originalDaftarVideo];
-                showToast("Urutan playlist normal", "info");
-            }
-            tampilkanHasil(daftarVideo);
-        }
-
-        function toggleRepeat() {
-            const modeText = document.getElementById("repeatModeText");
-            const btn = document.getElementById("btnRepeat");
-            
-            if (repeatMode === 'all') {
-                repeatMode = 'one';
-                modeText.textContent = "One";
-                btn.classList.add("text-suryared-500");
-                showToast("Ulangi satu video saja", "info");
-            } else if (repeatMode === 'one') {
-                repeatMode = 'none';
-                modeText.textContent = "Off";
-                btn.classList.remove("text-suryared-500");
-                showToast("Ulangi playlist nonaktif", "warning");
-            } else {
-                repeatMode = 'all';
-                modeText.textContent = "All";
-                btn.classList.add("text-suryared-500");
-                showToast("Ulangi semua playlist", "info");
-            }
-        }
-
-        /* ==========================================================================
-           MODAL API KEY MANAGEMENT SYSTEM
-           ========================================================================== */
-        function openApiKeyModal() {
-            const modal = document.getElementById("apiKeyModal");
-            const input = document.getElementById("apiKeyInput");
-            input.value = localStorage.getItem('surtok_api_key') || "";
-            modal.classList.remove("opacity-0", "pointer-events-none");
-        }
-
-        function closeApiKeyModal() {
-            const modal = document.getElementById("apiKeyModal");
-            modal.classList.add("opacity-0", "pointer-events-none");
-        }
-
-        function saveApiKey() {
-            const input = document.getElementById("apiKeyInput").value.trim();
-            if (input) {
-                localStorage.setItem('surtok_api_key', input);
-                showToast("API Key Kustom Berhasil Disimpan!", "success");
-            } else {
-                localStorage.removeItem('surtok_api_key');
-                showToast("Menggunakan API Key Bawaan Sistem.", "info");
-            }
-            closeApiKeyModal();
-            searchYoutube(); // Coba cari ulang menggunakan key baru
-        }
-
-        /* ==========================================================================
-           BROADCAST JADWAL PROMOSI AUDIO (CRITICAL CORE ENGINE)
-           ========================================================================== */
-        setInterval(() => {
-            const now = new Date();
-            const jam = String(now.getHours()).padStart(2, '0');
-            const menit = String(now.getMinutes()).padStart(2, '0');
-            const waktuSekarang = `${jam}:${menit}`;
-
-            jadwalPromo.forEach(promo => {
-                const uniqueKey = waktuSekarang + "_" + promo.audio;
-
-                if (promo.waktu === waktuSekarang && lastPlayed !== uniqueKey) {
-                    lastPlayed = uniqueKey;
-                    jalankanPromo(promo);
-                }
-            });
-            
-            updatePromoScheduleDisplay();
-        }, 1000);
-
-        function jalankanPromo(promo) {
-            isPromoRunning = true;
-            
-            if (playerReady && player) {
-                player.pauseVideo();
-            }
-
-            document.getElementById("promoFileName").textContent = promo.audio;
-            promoOverlay.style.opacity = "1";
-            promoOverlay.style.pointerEvents = "auto";
-            
-            document.getElementById("activePromoTrack").innerHTML = `
-                <span class="flex h-2 w-2 relative">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-suryared-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-suryared-600"></span>
-                </span>
-                <span class="text-suryared-500 font-extrabold text-[10px] animate-pulse">🔊 PROMO: ${promo.audio}</span>
-            `;
-
-            promoPlayer.src = promo.audio;
-            
-            const playPromise = promoPlayer.play();
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    showToast(`Broadcasting: ${promo.audio}`, "info");
-                }).catch(error => {
-                    console.log("Audio play diproteksi browser. Memerlukan interaksi user.");
-                });
-            }
-
-            promoPlayer.ontimeupdate = () => {
-                const percent = (promoPlayer.currentTime / promoPlayer.duration) * 100;
-                document.getElementById("promoProgressBar").style.width = `${percent}%`;
-                
-                document.getElementById("promoCurrentTime").textContent = formatTime(promoPlayer.currentTime);
-                if (promoPlayer.duration) {
-                    document.getElementById("promoDuration").textContent = formatTime(promoPlayer.duration);
-                }
-            };
-
-            promoPlayer.onended = () => {
-                selesaiPromo();
-            };
-        }
-
-        function selesaiPromo() {
-            isPromoRunning = false;
-            promoOverlay.style.opacity = "0";
-            promoOverlay.style.pointerEvents = "none";
-            document.getElementById("promoProgressBar").style.width = "0%";
-            document.getElementById("activePromoTrack").innerHTML = `<i class="fa-solid fa-music text-gray-500"></i> No Promo Audio Running`;
-            
-            if (playerReady && player) {
-                player.playVideo();
-            }
-        }
-
-        function updatePromoScheduleDisplay() {
-            const now = new Date();
-            const minutesNow = now.getHours() * 60 + now.getMinutes();
-            
-            let nextPromo = null;
-            let minDiff = Infinity;
-
-            jadwalPromo.forEach(p => {
-                const parts = p.waktu.split(":");
-                const promoMinutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
-                
-                let diff = promoMinutes - minutesNow;
-                if (diff <= 0) {
-                    diff += 24 * 60;
-                }
-                
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    nextPromo = p;
-                }
-            });
-
-            const nextPromoTimeEl = document.getElementById("nextPromoTime");
-            if (nextPromoTimeEl && nextPromo) {
-                nextPromoTimeEl.textContent = `${nextPromo.waktu} (${nextPromo.audio.substring(0, 15)}...)`;
-            }
-        }
-
-        /* ==========================================================================
-           TV AUTO-HIDE & SIDEBAR TIMERS
-           ========================================================================== */
-        function setupSidebarTimer() {
-            document.addEventListener('mousemove', resetSidebarTimer);
-            document.addEventListener('mousedown', resetSidebarTimer);
-            document.addEventListener('keydown', resetSidebarTimer);
-            document.addEventListener('touchstart', resetSidebarTimer);
-
-            resetSidebarTimer();
-        }
-
-        function resetSidebarTimer() {
-            showSidebar();
-            clearTimeout(sidebarTimer);
-            sidebarTimer = setTimeout(hideSidebar, sidebarDelay);
-        }
-
-        function hideSidebar() {
-            if (isPromoRunning) return; 
-            // Jangan tutup jika kursor input pencarian sedang aktif (sedang mengetik kata kunci)
-            if (document.activeElement === document.getElementById("searchInput")) {
-                resetSidebarTimer();
-                return;
-            }
-            const sidebar = document.getElementById("sidebar");
-            sidebar.classList.add("w-0", "opacity-0", "pointer-events-none");
-            sidebar.classList.remove("w-[380px]", "opacity-100");
-            isSidebarOpen = false;
-        }
-
-        function showSidebar() {
-            const sidebar = document.getElementById("sidebar");
-            sidebar.classList.remove("w-0", "opacity-0", "pointer-events-none");
-            sidebar.classList.add("w-[380px]", "opacity-100");
-            isSidebarOpen = true;
-        }
-
-        function toggleSidebar() {
-            if (isSidebarOpen) {
-                hideSidebar();
-                clearTimeout(sidebarTimer);
-            } else {
-                showSidebar();
-                resetSidebarTimer();
-            }
-        }
-
-        /* ==========================================================================
-           UTILITIES, STORAGE, & RESPONSIVENESS HELPER
-           ========================================================================== */
-        function initClock() {
-            setInterval(() => {
-                const now = new Date();
-                const jam = String(now.getHours()).padStart(2, '0');
-                const menit = String(now.getMinutes()).padStart(2, '0');
-                const detik = String(now.getSeconds()).padStart(2, '0');
-                
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const tglString = now.toLocaleDateString('id-ID', options);
-
-                const currentTimeEl = document.getElementById("currentTime");
-                if (currentTimeEl) currentTimeEl.textContent = `${jam}:${menit}:${detik}`;
-
-                const currentDateEl = document.getElementById("currentDate");
-                if (currentDateEl) currentDateEl.textContent = tglString.toUpperCase();
-            }, 1000);
-
-            // Per pemutaran detik: Perbarui realtime waktu durasi video YouTube di bar bawah dalam format HH:MM:SS
-            setInterval(() => {
-                if (playerReady && player && typeof player.getCurrentTime === 'function' && typeof player.getDuration === 'function') {
-                    try {
-                        const current = player.getCurrentTime();
-                        const total = player.getDuration();
-                        const durationEl = document.getElementById("videoDurationText");
-                        if (durationEl) {
-                            if (total > 0) {
-                                durationEl.textContent = `${formatTime(current)} / ${formatTime(total)}`;
-                            } else {
-                                durationEl.textContent = `00:00:00 / 00:00:00`;
-                            }
-                        }
-                    } catch (e) {
-                        // Fail-safe
-                    }
-                }
-            }, 1000);
-        }
-
-        function initOfflineListeners() {
-            const netStatus = document.getElementById("internetStatus");
-            window.addEventListener('online', () => {
-                if (netStatus) {
-                    netStatus.textContent = "Online";
-                    netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 shrink-0 min-w-[85px]";
-                }
-                showToast("Koneksi Internet Terhubung Kembali", "success");
-            });
-            window.addEventListener('offline', () => {
-                if (netStatus) {
-                    netStatus.textContent = "Offline";
-                    netStatus.parentElement.className = "hidden sm:flex items-center gap-2 bg-suryared-500/10 border border-suryared-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-suryared-400 shrink-0 min-w-[85px]";
-                }
-                showToast("Koneksi Internet Terputus", "error");
-            });
-        }
-
-        function toggleFullscreen() {
-            const icon = document.getElementById("fullscreenIcon");
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
-                    if (icon) icon.className = "fa-solid fa-compress";
-                    showToast("Mode TV Fullscreen diaktifkan", "success");
-                }).catch(err => {
-                    showToast("Gagal mengaktifkan mode Fullscreen", "error");
-                });
-            } else {
-                document.exitFullscreen();
-                if (icon) icon.className = "fa-solid fa-expand";
-            }
-        }
-
-        document.addEventListener('fullscreenchange', () => {
-            const icon = document.getElementById("fullscreenIcon");
-            if (!document.fullscreenElement) {
-                if (icon) icon.className = "fa-solid fa-expand";
-            }
-        });
-
-        // Search History Handling
-        function addSearchHistory(word) {
-            searchHistory = searchHistory.filter(item => item.toLowerCase() !== word.toLowerCase());
-            searchHistory.unshift(word);
-            if (searchHistory.length > 5) searchHistory.pop(); 
-            localStorage.setItem('surtok_search_history', JSON.stringify(searchHistory));
-            renderSearchHistory();
-        }
-
-        function renderSearchHistory() {
-            const container = document.getElementById("searchHistory");
-            if (!container) return;
-            container.innerHTML = "";
-            searchHistory.forEach(history => {
-                const badge = document.createElement("button");
-                badge.className = "text-[10px] bg-white/5 hover:bg-suryared-600/30 hover:text-white px-2.5 py-1 rounded-full text-gray-400 font-semibold transition-colors duration-200 border border-white/5 shrink-0";
-                badge.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[8px] mr-1"></i> ${history}`;
-                badge.onclick = () => {
-                    document.getElementById("searchInput").value = history;
-                    searchYoutube();
-                };
-                container.appendChild(badge);
-            });
-        }
-
-        function formatTime(secs) {
-            const h = Math.floor(secs / 3600);
-            const m = Math.floor((secs % 3600) / 60);
-            const s = Math.floor(secs % 60);
-            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
-        function scrollToActiveVideo() {
-            const activeCard = document.getElementById(`card-${currentVideoId}`);
-            if (activeCard) {
-                activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-
-        /* ==========================================================================
-           MODERN STATES INJECTION: SKELETON, EMPTY, ERROR, TOASTS
-           ========================================================================== */
-        function renderSkeletonLoading(target) {
-            target.innerHTML = "";
-            for (let i = 0; i < 4; i++) {
-                const skeleton = document.createElement("div");
-                skeleton.className = "p-3 rounded-2xl bg-white/5 flex gap-3 animate-pulse border border-white/5";
-                skeleton.innerHTML = `
-                    <div class="w-28 h-20 bg-white/10 rounded-lg shrink-0"></div>
-                    <div class="flex-1 py-1 flex flex-col justify-between">
-                        <div class="space-y-2">
-                            <div class="h-3 bg-white/10 rounded w-11/12"></div>
-                            <div class="h-3 bg-white/10 rounded w-2/3"></div>
-                        </div>
-                        <div class="h-2 bg-white/5 rounded w-1/2"></div>
-                    </div>
-                `;
-                target.appendChild(skeleton);
-            }
-        }
-
-        function renderEmptyState(target) {
-            target.innerHTML = `
-                <div class="flex flex-col items-center justify-center text-center h-64 text-gray-400 px-4">
-                    <div class="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 border border-amber-500/20">
-                        <i class="fa-solid fa-magnifying-glass-minus text-2xl text-amber-500"></i>
-                    </div>
-                    <h3 class="font-bold text-white mb-1">Video Tidak Ditemukan</h3>
-                    <p class="text-xs text-gray-500">Coba gunakan kata kunci promosi lain atau periksa kembali penulisan pencarian Anda.</p>
+            <div class="relative z-10 flex flex-col items-center text-center">
+                <div class="mb-3">
+                    <img src="Logo%20Surtok%203D.png" 
+                         onerror="handleLogoError(this, 'header')"
+                         class="h-12 w-12 object-contain drop-shadow-md">
                 </div>
-            `;
-        }
+                
+                <h1 class="text-[10px] font-bold uppercase tracking-wider text-pink-100 mb-0.5">Sistem Cek Harga</h1>
+                <h2 class="text-2xl font-extrabold tracking-tight">SURYATOKOKU</h2>
+                
+                <!-- Status Badge -->
+                <div id="db-status" class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[11px] font-medium backdrop-blur-md border border-white/10 transition-all duration-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span>Menghubungkan database...</span>
+                </div>
+            </div>
+        </header>
 
-        function renderErrorState(target, errMsg) {
-            target.innerHTML = `
-                <div class="bg-suryared-900/20 border border-suryared-500/30 p-4 rounded-2xl text-center flex flex-col items-center">
-                    <i class="fa-solid fa-circle-exclamation text-3xl text-suryared-500 mb-2"></i>
-                    <h4 class="font-bold text-white text-sm mb-1">Peringatan Sistem</h4>
-                    <p class="text-xs text-gray-400 mb-3 leading-relaxed">Koneksi API YouTube bermasalah atau kuota harian terlampaui.</p>
-                    <p class="text-[10px] text-gray-500 mb-3">Tekan tombol kunci 🔑 di bar atas untuk memasukkan API Key YouTube mandiri jika masalah berlanjut.</p>
-                    <button onclick="searchYoutube()" class="bg-suryared-600 hover:bg-suryared-700 text-white font-bold text-xs py-2 px-4 rounded-lg transition-colors">
-                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Coba Lagi
+        <!-- SEARCH CONTAINER -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-5">
+            <div class="space-y-3">
+                <!-- 1. OPTIONAL PREFIX SEARCH (AWAL NAMA SAJA) -->
+                <div class="relative">
+                    <input id="start-name" type="text" placeholder="Isi nama produk dari awal (opsional)..." 
+                        class="w-full pl-11 pr-11 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-[#ff4fa3] focus:bg-white text-xs font-semibold transition-all placeholder-slate-400">
+                    
+                    <!-- Alphabet Prefix Icon -->
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                        </svg>
+                    </div>
+
+                    <!-- Clear Button -->
+                    <button id="clear-start-btn" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 hidden transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
                     </button>
                 </div>
-            `;
+
+                <!-- 2. MAIN SEARCH INPUT -->
+                <div class="relative">
+                    <input id="keyword" type="text" placeholder="Isi nama produk / kode item / barcode" 
+                        class="w-full pl-11 pr-24 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-500/10 focus:border-[#ff4fa3] focus:bg-white text-sm font-medium transition-all placeholder-slate-400">
+                    
+                    <!-- Search Icon Left -->
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+
+                    <!-- Right Controls: Voice, Clear -->
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <!-- Clear Button -->
+                        <button id="clear-btn" class="text-slate-400 hover:text-slate-700 hidden p-1 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <!-- Voice Search Button -->
+                        <button id="voice-btn" onclick="startVoiceSearch()" class="text-[#ff4fa3] hover:bg-pink-50 p-1.5 rounded-lg transition-all" title="Cari dengan Suara">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scanner Button Primary -->
+            <button onclick="startScanner()" class="mt-4 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-slate-900/5 active:scale-[0.99]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+                <span>SCAN BARCODE KAMERA</span>
+            </button>
+        </div>
+
+        <!-- CAMERA SCANNER VIEWPORT MODAL-LIKE -->
+        <div id="scanner-wrapper" class="hidden bg-slate-950 rounded-3xl p-4 mb-5 relative overflow-hidden border border-slate-850 shadow-inner">
+            <div class="flex items-center justify-between mb-3 text-white">
+                <span class="text-xs font-semibold tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    Kamera Aktif
+                </span>
+                <div class="flex items-center gap-2">
+                    <!-- Flashlight Toggle Button -->
+                    <button id="torch-btn" onclick="toggleTorch()" class="hidden text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="torch-btn-text">Senter</span>
+                    </button>
+                    <button onclick="stopScanner()" class="text-xs bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-3 py-1.5 rounded-xl font-bold transition-all">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+            
+            <div class="relative rounded-2xl bg-black border border-slate-800 p-0.5">
+                <div id="reader" class="w-full"></div>
+                <!-- Laser Overlay -->
+                <div id="laser-effect" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 hidden">
+                    <div class="scanner-laser"></div>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-400 text-center mt-2.5">Posisikan barcode produk lurus di dalam area kamera</p>
+        </div>
+
+        <!-- RESULTS INFO / STATS BAR -->
+        <div id="results-count" class="hidden justify-between items-center px-2 mb-3 text-xs text-slate-500 font-semibold">
+            <span id="count-text">Ditemukan 0 produk</span>
+            <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-md text-slate-400 font-bold uppercase">Hasil Pencarian</span>
+        </div>
+
+        <!-- RESULTS LIST -->
+        <main id="hasil" class="space-y-3.5"></main>
+    </div>
+
+    <!-- AUDIO VOICE SEARCH PRE PREMIUM OVERLAY -->
+    <div id="voice-overlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex flex-col items-center justify-center text-white p-6">
+        <div class="bg-white/10 p-8 rounded-full mb-6 border border-white/20 relative">
+            <div class="absolute inset-0 bg-pink-500/30 rounded-full animate-ping"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[#ff4fa3] relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold tracking-tight mb-2">Mendengarkan Suara...</h3>
+        <p class="text-xs text-slate-300 mb-8 max-w-xs text-center">Sebutkan nama produk secara jelas untuk dicari.</p>
+        <button onclick="stopVoiceSearch()" class="px-6 py-2.5 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-bold transition-all">
+            Batal
+        </button>
+    </div>
+
+    <!-- NEW TOP FLOATING TOAST NOTIFICATION (iOS/Android Style) -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white/95 backdrop-blur-md border border-slate-100/80 px-4.5 py-3 rounded-2xl shadow-xl shadow-slate-200/50 transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none max-w-sm w-[90%]">
+        <div id="toast-icon-wrapper" class="p-2 rounded-xl text-sm flex items-center justify-center"></div>
+        <div class="flex-1">
+            <p id="toast-title" class="text-xs font-bold text-slate-900"></p>
+            <p id="toast-message" class="text-[11px] text-slate-500 font-medium"></p>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN URL DEPLOY WEB APP GAS ANDA DI SINI
+        const API_URL = "https://script.google.com/macros/s/AKfycbwUYwErTnGUt1dRFYALnkIibTb_8SrIEaRJr2nNkBW3fdM2XJi4yuOrhV5-w8yvQcDXsQ/exec";
+        
+        let currentProducts = [];
+        let allProducts = [];
+        let qr = null;
+        let isTorchOn = false;
+        let speechRecognitionInstance = null;
+
+        // INDEXEDDB CONFIGURATION FOR INSTANT LOADING
+        const DB_NAME = "SuryatokokuLocalDB";
+        const STORE_NAME = "product_cache";
+
+        const startNameInput = document.getElementById("start-name");
+        const clearStartBtn = document.getElementById("clear-start-btn");
+        const keywordInput = document.getElementById("keyword");
+        const clearBtn = document.getElementById("clear-btn");
+        const hasilDiv = document.getElementById("hasil");
+        const dbStatus = document.getElementById("db-status");
+        const splashScreen = document.getElementById("splash-screen");
+        const splashStatus = document.getElementById("splash-status");
+        const splashBadgeText = document.getElementById("splash-badge-text");
+        const splashPulse = document.getElementById("splash-pulse");
+        const resultsCountBar = document.getElementById("results-count");
+        const countText = document.getElementById("count-text");
+
+        // Event listener offline/online status
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                showToast("Terhubung Kembali", "Koneksi internet Anda aktif kembali", "success");
+            } else {
+                showToast("Koneksi Terputus", "Aplikasi bekerja dalam Mode Offline", "error");
+                dbStatus.innerHTML = `
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                    <span>Offline (Mode Lokal)</span>
+                `;
+            }
         }
 
-        function showToast(message, type = 'info') {
-            const existingToast = document.getElementById("systemToast");
-            if (existingToast) existingToast.remove();
+        // Event listener input filter awalan nama
+        startNameInput.addEventListener("input", () => {
+            if (startNameInput.value.length > 0) {
+                clearStartBtn.classList.remove("hidden");
+            } else {
+                clearStartBtn.classList.add("hidden");
+            }
+            cariProduk();
+        });
 
-            const toast = document.createElement("div");
-            toast.id = "systemToast";
-            
-            let colorClass = "bg-darkcard border-white/10 text-white";
-            let icon = "fa-info-circle text-blue-400";
-            
+        clearStartBtn.addEventListener("click", () => {
+            startNameInput.value = "";
+            clearStartBtn.classList.add("hidden");
+            cariProduk();
+            startNameInput.focus();
+        });
+
+        // Event listener input kata kunci pencarian utama
+        keywordInput.addEventListener("input", () => {
+            if (keywordInput.value.length > 0) {
+                clearBtn.classList.remove("hidden");
+            } else {
+                clearBtn.classList.add("hidden");
+            }
+            cariProduk();
+        });
+
+        clearBtn.addEventListener("click", () => {
+            keywordInput.value = "";
+            clearBtn.classList.add("hidden");
+            cariProduk();
+            keywordInput.focus();
+        });
+
+        window.onload = loadData;
+
+        // Modern top-slide toast notification system
+        function showToast(title, message, type = 'info') {
+            const toast = document.getElementById("toast");
+            const iconWrapper = document.getElementById("toast-icon-wrapper");
+            const titleElem = document.getElementById("toast-title");
+            const msgElem = document.getElementById("toast-message");
+
+            titleElem.innerText = title;
+            msgElem.innerText = message;
+
+            // Konfigurasi icon berdasarkan tipe toast
             if (type === 'success') {
-                colorClass = "bg-emerald-950/90 border-emerald-500/30 text-emerald-100";
-                icon = "fa-check-circle text-emerald-400";
+                iconWrapper.className = "p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100";
+                iconWrapper.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                `;
             } else if (type === 'error') {
-                colorClass = "bg-suryared-950/90 border-suryared-500/30 text-suryared-100";
-                icon = "fa-triangle-exclamation text-suryared-400";
-            } else if (type === 'warning') {
-                colorClass = "bg-amber-950/90 border-amber-500/30 text-amber-100";
-                icon = "fa-exclamation-circle text-amber-400";
+                iconWrapper.className = "p-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-100";
+                iconWrapper.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                `;
+            } else {
+                iconWrapper.className = "p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100";
+                iconWrapper.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
             }
 
-            toast.className = `fixed bottom-24 right-6 px-5 py-3.5 rounded-xl border flex items-center gap-3 shadow-2xl z-[999] transition-all duration-300 transform translate-y-4 opacity-0 ${colorClass}`;
-            toast.innerHTML = `
-                <i class="fa-solid ${icon} text-lg"></i>
-                <span class="text-xs font-semibold tracking-wide">${message}</span>
-            `;
+            // Animasi masuk (iOS style slide-down)
+            toast.classList.remove("-translate-y-24", "opacity-0");
+            toast.classList.add("translate-y-0", "opacity-100");
 
-            document.body.appendChild(toast);
+            setTimeout(() => {
+                // Animasi Keluar
+                toast.classList.add("-translate-y-24", "opacity-0");
+                toast.classList.remove("translate-y-0", "opacity-100");
+            }, 3000);
+        }
+
+        // --- INDEXEDDB HELPER FUNCTIONS FOR FAST CACHING ---
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function getCachedProducts() {
+            try {
+                const db = await initDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, "readonly");
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get("all_products");
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error("Gagal memuat cache lokal:", e);
+                return null;
+            }
+        }
+
+        async function saveProductsToCache(data) {
+            try {
+                const db = await initDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, "readwrite");
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.put(data, "all_products");
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error("Gagal menyimpan cache baru:", e);
+            }
+        }
+
+        // --- STALE-WHILE-REVALIDATE STRATEGY ---
+        async function loadData() {
+            try {
+                splashStatus.innerText = "Memeriksa database lokal untuk startup instan...";
+                
+                // Cek data di penyimpanan offline (IndexedDB)
+                const cachedData = await getCachedProducts();
+
+                if (cachedData && cachedData.length > 0) {
+                    // JIKA ADA CACHE: Langsung perlihatkan produk agar user langsung bisa mencari tanpa menunggu download!
+                    allProducts = cachedData;
+                    
+                    dbStatus.innerHTML = `
+                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
+                        <span>Mode Lokal: ${allProducts.length.toLocaleString("id-ID")} Produk</span>
+                    `;
+
+                    // Sembunyikan Splash screen langsung
+                    splashScreen.classList.add("opacity-0", "pointer-events-none");
+                    setTimeout(() => {
+                        splashScreen.classList.add("hidden");
+                    }, 500);
+
+                    // Revalidasi data secara sunyi di latar belakang
+                    fetchFreshData(true);
+                } else {
+                    // JIKA TIDAK ADA CACHE: Unduh penuh database di awal startup
+                    splashBadgeText.innerText = "Mengunduh Database Baru...";
+                    splashStatus.innerText = "Mengunduh katalog produk dari database pusat...";
+                    await fetchFreshData(false);
+                }
+            } catch (err) {
+                console.error(err);
+                await fetchFreshData(false);
+            }
+        }
+
+        // Mengunduh database terbaru dari Google Sheets via GAS
+        async function fetchFreshData(isBackground = false) {
+            try {
+                if (!navigator.onLine) {
+                    throw new Error("Perangkat dalam status Offline");
+                }
+
+                const res = await fetch(API_URL + "?action=load");
+                if (!res.ok) throw new Error("Gagal menerima respons server");
+                
+                const json = await res.json();
+                const freshProducts = json.data || [];
+
+                if (freshProducts.length > 0) {
+                    allProducts = freshProducts;
+                    await saveProductsToCache(freshProducts);
+                    
+                    // Update status badge menjadi Hijau Aktif
+                    dbStatus.innerHTML = `
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        <span>Database Sinkron: ${allProducts.length.toLocaleString("id-ID")} Produk</span>
+                    `;
+
+                    // Jika user sedang mencari sesuatu, perbarui hasil pencariannya secara real-time
+                    if (keywordInput.value.trim() || startNameInput.value.trim()) {
+                        cariProduk();
+                    }
+                }
+
+                if (!isBackground) {
+                    splashScreen.classList.add("opacity-0", "pointer-events-none");
+                    setTimeout(() => {
+                        splashScreen.classList.add("hidden");
+                    }, 500);
+                    showToast("Selesai", `${allProducts.length.toLocaleString("id-ID")} produk berhasil disinkronkan`, 'success');
+                } else {
+                    showToast("Sinkronisasi Selesai", "Database produk berhasil diperbarui secara otomatis di latar belakang", "success");
+                }
+            } catch (err) {
+                console.error("Gagal melakukan sinkronisasi database:", err);
+                
+                if (!isBackground) {
+                    // Jika gagal murni di awal startup (tanpa cache dan internet error)
+                    dbStatus.innerHTML = `
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        <span>Koneksi Database Gagal</span>
+                    `;
+
+                    splashScreen.classList.add("opacity-0", "pointer-events-none");
+                    setTimeout(() => {
+                        splashScreen.classList.add("hidden");
+                    }, 500);
+
+                    hasilDiv.innerHTML = `
+                        <div class="bg-rose-50 border border-rose-100 rounded-3xl p-6 text-center shadow-sm">
+                            <div class="font-bold text-slate-950 text-sm mb-1">Gagal Sinkronisasi Awal</div>
+                            <p class="text-xs text-rose-600 mb-3">Pastikan koneksi internet aktif lalu ketuk tombol muat ulang untuk mencoba kembali.</p>
+                            <button onclick="location.reload()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm">Muat Ulang Aplikasi</button>
+                        </div>
+                    `;
+                    showToast("Gagal Sinkronisasi", "Gagal menghubungkan ke server utama", "error");
+                } else {
+                    // Jika gagal revalidasi tapi sudah ada data cache, biarkan tetap berjalan dalam status offline lokal
+                    dbStatus.innerHTML = `
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span>Offline: ${allProducts.length.toLocaleString("id-ID")} Produk</span>
+                    `;
+                    showToast("Mode Offline", "Koneksi lambat, menggunakan basis data lokal tersimpan", "info");
+                }
+            }
+        }
+
+        // --- SISTEM CARI PRODUK (SMART MULTI-WORD MATCHING) ---
+        function cariProduk() {
+            const startName = startNameInput.value.trim().toLowerCase();
+            const keyword = keywordInput.value.trim().toLowerCase();
+
+            // Jika kedua input kosong, bersihkan daftar pencarian
+            if (!startName && !keyword) {
+                hasilDiv.innerHTML = "";
+                resultsCountBar.classList.replace("flex", "hidden");
+                return;
+            }
+
+            // Memisahkan kata kunci menjadi array kata untuk pencarian dinamis multikata (misal: "Aqua 600" akan mencocokkan "Aqua Gelas 600ml")
+            const searchTerms = keyword.split(/\s+/).filter(Boolean);
+
+            currentProducts = allProducts.filter(item => {
+                // 1. Validasi filter "awalan nama" (jika diisi)
+                let matchesStartName = true;
+                if (startName) {
+                    matchesStartName = String(item.nama || "").toLowerCase().startsWith(startName);
+                }
+
+                // 2. Validasi filter kata kunci multikata (jika diisi)
+                let matchesKeyword = true;
+                if (searchTerms.length > 0) {
+                    matchesKeyword = searchTerms.every(term => {
+                        return String(item.barcode || "").toLowerCase().includes(term) ||
+                               String(item.kode || "").toLowerCase().includes(term) ||
+                               String(item.nama || "").toLowerCase().includes(term);
+                    });
+                }
+
+                return matchesStartName && matchesKeyword;
+            });
+
+            // Urutkan pencarian: Jika keyword cocok persis dengan barcode/kode, dahulukan di baris paling atas!
+            if (keyword) {
+                currentProducts.sort((a, b) => {
+                    const aBarcodeExact = String(a.barcode || "").toLowerCase() === keyword || String(a.kode || "").toLowerCase() === keyword;
+                    const bBarcodeExact = String(b.barcode || "").toLowerCase() === keyword || String(b.kode || "").toLowerCase() === keyword;
+                    if (aBarcodeExact && !bBarcodeExact) return -1;
+                    if (!aBarcodeExact && bBarcodeExact) return 1;
+                    return 0;
+                });
+            }
+
+            tampilkanProduk();
+        }
+
+        function tampilkanProduk() {
+            const totalMatches = currentProducts.length;
+
+            if (totalMatches === 0) {
+                resultsCountBar.classList.replace("flex", "hidden");
+                hasilDiv.innerHTML = `
+                    <div class="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-sm animate-fade-in">
+                        <div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm">Produk Tidak Ditemukan</h3>
+                        <p class="text-xs text-slate-400 mt-1">Gunakan kata pencarian lain atau pastikan ejaan/barcode sesuai.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Batasi tampilan maksimal 20 item demi performa DOM yang responsif
+            const displayLimit = 20;
+            const displayedItems = currentProducts.slice(0, displayLimit);
+
+            // Perbarui visual bar statistik pencarian
+            resultsCountBar.classList.replace("hidden", "flex");
+            countText.innerText = totalMatches > displayLimit 
+                ? `Menampilkan ${displayLimit} dari ${totalMatches.toLocaleString("id-ID")} produk`
+                : `Ditemukan ${totalMatches.toLocaleString("id-ID")} produk`;
+
+            let html = "";
+            displayedItems.forEach(item => {
+                html += `
+                    <div class="bg-white rounded-2xl p-4 border border-slate-100/80 shadow-sm hover:shadow-md transition-all duration-300">
+                        <!-- Top Metadata & Title -->
+                        <div class="flex flex-col gap-1">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-md">
+                                    KODE: ${item.kode || '-'}
+                                </span>
+                                ${item.barcode ? `
+                                    <span onclick="copyToClipboard('${item.barcode}')" class="cursor-pointer hover:bg-pink-100 active:scale-95 text-[9px] font-bold px-2.5 py-0.5 bg-pink-50 text-[#ff4fa3] rounded-md flex items-center gap-1 transition-all" title="Klik untuk menyalin">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        ${item.barcode}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <h3 class="font-extrabold text-slate-800 text-[14px] leading-tight tracking-tight mt-1">${item.nama}</h3>
+                        </div>
+
+                        <!-- Price Section (3-Column Layout Dashboard) -->
+                        <div class="grid grid-cols-3 gap-1.5 mt-3">
+                            <!-- Non Member -->
+                            <div class="bg-slate-50/70 p-2.5 rounded-xl border border-slate-100/50 text-center">
+                                <span class="block text-[8px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Non-Member</span>
+                                <span class="block text-xs font-extrabold text-slate-700">Rp ${rupiah(item.non)}</span>
+                            </div>
+
+                            <!-- Member Ecer -->
+                            <div class="bg-pink-50/20 p-2.5 rounded-xl border border-pink-100/30 text-center">
+                                <span class="block text-[8px] font-extrabold text-[#ff4fa3] uppercase tracking-widest mb-1">Ecer</span>
+                                <span class="block text-xs font-black text-[#ff4fa3]">Rp ${rupiah(item.ecer)}</span>
+                            </div>
+
+                            <!-- Member Grosir -->
+                            <div class="bg-indigo-50/20 p-2.5 rounded-xl border border-indigo-100/30 text-center">
+                                <span class="block text-[8px] font-extrabold text-indigo-500 uppercase tracking-widest mb-1">Grosir</span>
+                                <span class="block text-xs font-black text-indigo-700">Rp ${rupiah(item.grosir)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            hasilDiv.innerHTML = html;
+        }
+
+        function rupiah(x) {
+            return Number(x || 0).toLocaleString("id-ID");
+        }
+
+        // --- CLIPBOARD UTILITY ---
+        function copyToClipboard(text) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast("Teks Disalin", `Barcode ${text} berhasil disalin ke clipboard!`, "success");
+                if (navigator.vibrate) navigator.vibrate(50);
+            } catch (err) {
+                console.error("Gagal menyalin barcode:", err);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // --- AUDIO VOICE RECOGNITION SEARCH ---
+        function startVoiceSearch() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
-            setTimeout(() => {
-                toast.classList.remove("translate-y-4", "opacity-0");
-            }, 10);
+            if (!SpeechRecognition) {
+                showToast("Gagal", "Browser ini tidak mendukung fitur Speech Recognition (Disarankan Chrome Mobile/Android).", "error");
+                return;
+            }
 
-            setTimeout(() => {
-                toast.classList.add("translate-y-4", "opacity-0");
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+            const voiceOverlay = document.getElementById("voice-overlay");
+            voiceOverlay.classList.remove("hidden");
+
+            speechRecognitionInstance = new SpeechRecognition();
+            speechRecognitionInstance.lang = "id-ID"; // Default Bahasa Indonesia
+            speechRecognitionInstance.interimResults = false;
+            speechRecognitionInstance.maxAlternatives = 1;
+
+            speechRecognitionInstance.start();
+
+            speechRecognitionInstance.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                keywordInput.value = speechResult;
+                clearBtn.classList.remove("hidden");
+                cariProduk();
+                showToast("Pencarian Suara", `Mencari produk: "${speechResult}"`, "success");
+                stopVoiceSearch();
+            };
+
+            speechRecognitionInstance.onspeechend = () => {
+                stopVoiceSearch();
+            };
+
+            speechRecognitionInstance.onerror = (event) => {
+                console.error("Kesalahan Speech recognition:", event.error);
+                stopVoiceSearch();
+                showToast("Kesalahan Mikrofon", "Gagal menangkap ucapan suara Anda. Silakan ulangi.", "error");
+            };
+        }
+
+        function stopVoiceSearch() {
+            if (speechRecognitionInstance) {
+                speechRecognitionInstance.stop();
+                speechRecognitionInstance = null;
+            }
+            document.getElementById("voice-overlay").classList.add("hidden");
+        }
+
+        // --- SCANNER LOGIC (INTEGRATED LIGHT/TORCH CONTROL) ---
+        function startScanner() {
+            if (qr) {
+                stopScanner();
+                return;
+            }
+
+            const wrapper = document.getElementById("scanner-wrapper");
+            const laser = document.getElementById("laser-effect");
+            
+            wrapper.classList.remove("hidden");
+            laser.classList.remove("hidden");
+            document.getElementById("reader").innerHTML = "";
+
+            qr = new Html5Qrcode("reader");
+            isTorchOn = false;
+            document.getElementById("torch-btn-text").innerText = "Senter";
+            
+            qr.start(
+                { facingMode: "environment" },
+                { 
+                    fps: 30, 
+                    qrbox: (width, height) => {
+                        const size = Math.min(width, height) * 0.75;
+                        return { width: size, height: size * 0.55 }; // Bentuk ideal horizontal untuk barcode produk biasa
+                    },
+                    aspectRatio: 1.333334, // Rasio 4:3 default kamera belakang ponsel cerdas
+                    videoConstraints: {
+                        facingMode: "environment",
+                        width: { min: 640, ideal: 1280, max: 1920 }, // Resolusi HD tajam untuk membaca barcode kecil
+                        height: { min: 480, ideal: 720, max: 1080 }
+                    }
+                },
+                (decoded) => {
+                    keywordInput.value = decoded;
+                    clearBtn.classList.remove("hidden");
+                    
+                    if (navigator.vibrate) {
+                        navigator.vibrate(120);
+                    }
+
+                    stopScanner();
+                    cariProduk();
+                    showToast("Sukses", `Barcode "${decoded}" berhasil dipindai!`, "success");
+                },
+                (error) => {}
+            ).then(() => {
+                // Senter: Periksa dukungan senter pada trek kamera yang sedang berjalan
+                const track = qr.getRunningTrack();
+                const torchBtn = document.getElementById("torch-btn");
+                if (track && typeof track.getCapabilities === 'function') {
+                    const capabilities = track.getCapabilities();
+                    if (capabilities.torch) {
+                        torchBtn.classList.remove("hidden"); // Tampilkan tombol senter jika perangkat mendukung
+                    } else {
+                        torchBtn.classList.add("hidden");
+                    }
+                }
+            }).catch(err => {
+                console.error("Gagal mengakses kamera perangkat:", err);
+                showToast("Kamera Diblokir", "Akses ditolak atau kamera tidak ditemukan di perangkat ini.", "error");
+                stopScanner();
+            });
+        }
+
+        function toggleTorch() {
+            if (qr) {
+                const track = qr.getRunningTrack();
+                if (track) {
+                    isTorchOn = !isTorchOn;
+                    track.applyConstraints({
+                        advanced: [{ torch: isTorchOn }]
+                    }).then(() => {
+                        document.getElementById("torch-btn-text").innerText = isTorchOn ? "Matikan" : "Senter";
+                    }).catch(err => {
+                        console.error("Gagal mengaktifkan senter:", err);
+                    });
+                }
+            }
+        }
+
+        function stopScanner() {
+            const wrapper = document.getElementById("scanner-wrapper");
+            const laser = document.getElementById("laser-effect");
+            const torchBtn = document.getElementById("torch-btn");
+
+            torchBtn.classList.add("hidden");
+
+            if (qr) {
+                qr.stop().then(() => {
+                    qr = null;
+                    wrapper.classList.add("hidden");
+                    laser.classList.add("hidden");
+                    document.getElementById("reader").innerHTML = "";
+                }).catch(err => {
+                    console.error("Gagal menghentikan scanner dengan aman:", err);
+                    qr = null;
+                    wrapper.classList.add("hidden");
+                    laser.classList.add("hidden");
+                    document.getElementById("reader").innerHTML = "";
+                });
+            } else {
+                wrapper.classList.add("hidden");
+                laser.classList.add("hidden");
+            }
         }
     </script>
 </body>
